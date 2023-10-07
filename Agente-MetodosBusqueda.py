@@ -3,6 +3,7 @@ import random
 import time
 import heapq
 import tkinter as tk
+import colorsys
 
 # Definir constantes para la dificultad
 FACIL = 0
@@ -11,6 +12,7 @@ DIFICIL = 2
 
 tablero = None
 tablero_edicion = None
+trayectoria = None
 inicio = None
 meta = None
 
@@ -127,50 +129,6 @@ def esperar(tablero):
 
 
 # Algoritmo de Depth-First Search (DFS)
-def dfs2(tablero, inicio, meta):
-
-    # Iniciar el tiempo de ejecución
-    inicio_tiempo = time.perf_counter()
-
-    # Pila para almacenar los nodos
-    pila = []
-    
-    # Diccionario para almacenar los nodos visitados
-    visitados = {}
-    
-    # Agregar el nodo inicial a la pila
-    pila.append(inicio)
-    
-    # Mientras la pila no este vacia
-    while len(pila) > 0:
-        # Extraer el nodo de la pila
-        nodo = pila.pop()
-        
-        # Si el nodo no ha sido visitado
-        if nodo not in visitados:
-            # Marcar el nodo como visitado
-            visitados[nodo] = True
-            
-            # Si el nodo es la meta, retornar la trayectoria
-            if nodo == meta:
-                mostrar_tablero_en_canvas(tablero, inicio, meta, list(visitados.keys()), True)
-                return list(visitados.keys()), time.perf_counter() - inicio_tiempo
-            
-            # Obtener los vecinos del nodo
-            vecinos = obtener_vecinos(tablero, nodo)
-            
-            # Agregar los vecinos a la pila
-            pila.extend(vecinos)
-
-            esperar(tablero)
-            mostrar_tablero_en_canvas(tablero, inicio, meta, list(visitados.keys()))
-    
-    # Si no se encontró una trayectoria, retornar None
-    mostrar_tablero_en_canvas(tablero, inicio, meta, list(visitados.keys()), False)
-    return None, time.perf_counter() - inicio_tiempo
-
-
-# Algoritmo de Depth-First Search (DFS)
 def dfs(tablero, inicio, meta):
     # Iniciar el tiempo de ejecución
     inicio_tiempo = time.perf_counter()
@@ -204,8 +162,14 @@ def dfs(tablero, inicio, meta):
             if nodo == meta:
                 if not ruta_corta or len(ruta_actual) < len(ruta_corta):
                     ruta_corta = list(ruta_actual)
-                mostrar_tablero_en_canvas(tablero, inicio, meta, ruta_corta, True)
-                return ruta_corta, time.perf_counter() - inicio_tiempo
+                fin_tiempo = time.perf_counter() - inicio_tiempo
+                # Mostrar la trayectoria mas corta encontrada
+                ruta = []
+                for nodo in ruta_corta:
+                    esperar(tablero)
+                    ruta.append(nodo)
+                    mostrar_tablero_en_canvas(tablero, inicio, meta, ruta, True)
+                return ruta_corta, fin_tiempo
 
             # Obtener los vecinos del nodo
             vecinos = obtener_vecinos(tablero, nodo)
@@ -220,51 +184,6 @@ def dfs(tablero, inicio, meta):
     # Si no se encontró una trayectoria, retornar None
     mostrar_tablero_en_canvas(tablero, inicio, meta, list(visitados.keys()), False)
     return None, time.perf_counter() - inicio_tiempo
-
-
-
-# Algoritmo de Breadth-First Search (BFS)
-def bfs2(tablero, inicio, meta):
-        # Iniciar el tiempo de ejecución
-        inicio_tiempo = time.perf_counter()
-    
-        # Cola para almacenar los nodos
-        cola = []
-        
-        # Diccionario para almacenar los nodos visitados
-        visitados = {}
-        
-        # Agregar el nodo inicial a la cola
-        cola.append(inicio)
-        
-        # Mientras la cola no este vacia
-        while len(cola) > 0:
-            # Extraer el nodo de la cola
-            nodo = cola.pop(0)
-            
-            # Si el nodo no ha sido visitado
-            if nodo not in visitados:
-                # Marcar el nodo como visitado
-                visitados[nodo] = True
-                
-                # Si el nodo es la meta, retornar la trayectoria
-                if nodo == meta:
-                    mostrar_tablero_en_canvas(tablero, inicio, meta, list(visitados.keys()), True)
-                    return list(visitados.keys()), time.perf_counter() - inicio_tiempo
-                
-                # Obtener los vecinos del nodo
-                vecinos = obtener_vecinos(tablero, nodo)
-                
-                # Agregar los vecinos a la cola
-                cola.extend(vecinos)
-    
-                esperar(tablero)
-                mostrar_tablero_en_canvas(tablero, inicio, meta, list(visitados.keys()))
-        
-        # Si no se encontró una trayectoria, retornar None
-        mostrar_tablero_en_canvas(tablero, inicio, meta, list(visitados.keys()), False)
-        return None, time.perf_counter() - inicio_tiempo
-
 
 
 # Algoritmo de Breadth-First Search (BFS)
@@ -301,8 +220,15 @@ def bfs(tablero, inicio, meta):
             if nodo == meta:
                 if not ruta_corta or len(ruta_actual) < len(ruta_corta):
                     ruta_corta = list(ruta_actual)
-                mostrar_tablero_en_canvas(tablero, inicio, meta, ruta_corta, True)
-                return ruta_corta, time.perf_counter() - inicio_tiempo
+
+                fin_tiempo = time.perf_counter() - inicio_tiempo
+                # Mostrar la trayectoria mas corta encontrada
+                ruta = []
+                for nodo in ruta_corta:
+                    esperar(tablero)
+                    ruta.append(nodo)
+                    mostrar_tablero_en_canvas(tablero, inicio, meta, ruta, True)
+                return ruta_corta, fin_tiempo
                 
             # Obtener los vecinos del nodo
             vecinos = obtener_vecinos(tablero, nodo)
@@ -310,55 +236,6 @@ def bfs(tablero, inicio, meta):
             # Agregar los vecinos a la cola junto con la ruta actual
             for vecino in vecinos:
                 cola.append((vecino, list(ruta_actual)))
-
-            esperar(tablero)
-            mostrar_tablero_en_canvas(tablero, inicio, meta, list(visitados.keys()))
-    
-    # No hay trayectoria
-    mostrar_tablero_en_canvas(tablero, inicio, meta, list(visitados.keys()), False)
-    return None, time.perf_counter() - inicio_tiempo
-
-
-# Función de Best-First Search (BFS)
-def best_first_search2(tablero, inicio, meta):
-
-    # Iniciar el tiempo de ejecución
-    inicio_tiempo = time.perf_counter()
-
-    # Cola de prioridad para almacenar los nodos
-    cola_prioridad = []
-    
-    # Diccionario para almacenar los nodos visitados
-    visitados = {}
-    
-    # Agregar el nodo inicial a la cola de prioridad
-    cola_prioridad.append((inicio, distancia_manhattan(inicio, meta)))
-    
-    # Mientras la cola de prioridad no esté vacía
-    while len(cola_prioridad) > 0:
-        # Extraer el nodo de la cola de prioridad
-        nodo, _ = cola_prioridad.pop(0)
-        
-        # Si el nodo no ha sido visitado
-        if nodo not in visitados:
-            # Marcar el nodo como visitado
-            visitados[nodo] = True
-            
-            # Si el nodo es la meta, retornar la trayectoria
-            if nodo == meta:
-                mostrar_tablero_en_canvas(tablero, inicio, meta, list(visitados.keys()), True)
-                return list(visitados.keys()), time.perf_counter() - inicio_tiempo
-            
-            # Obtener los vecinos del nodo
-            vecinos = obtener_vecinos(tablero, nodo)
-            
-            # Agregar los vecinos a la cola de prioridad
-            for vecino in vecinos:
-                distancia_hasta_meta = distancia_manhattan(vecino, meta)
-                cola_prioridad.append((vecino, distancia_hasta_meta))
-            
-            # Ordenar la cola de prioridad
-            cola_prioridad.sort(key=lambda x: x[1])
 
             esperar(tablero)
             mostrar_tablero_en_canvas(tablero, inicio, meta, list(visitados.keys()))
@@ -403,8 +280,14 @@ def best_first_search(tablero, inicio, meta):
             if nodo == meta:
                 if not ruta_corta or len(ruta_actual) < len(ruta_corta):
                     ruta_corta = list(ruta_actual)
-                mostrar_tablero_en_canvas(tablero, inicio, meta, ruta_corta, True)
-                return ruta_corta, time.perf_counter() - inicio_tiempo
+                fin_tiempo = time.perf_counter() - inicio_tiempo
+                # Mostrar la trayectoria mas corta encontrada
+                ruta = []
+                for nodo in ruta_corta:
+                    esperar(tablero)
+                    ruta.append(nodo)
+                    mostrar_tablero_en_canvas(tablero, inicio, meta, ruta, True)
+                return ruta_corta, fin_tiempo
             
             # Obtener los vecinos del nodo
             vecinos = obtener_vecinos(tablero, nodo)
@@ -493,7 +376,21 @@ def astar(tablero, inicio, meta):
     return None, time.perf_counter() - inicio_tiempo
 
 
-# Función para mostrar el tablero y la ruta en el lienzo (Canvas)
+# Función para generar un gradiente entre dos colores
+def generar_color_gradiente(posicion_actual, longitud_ruta, color_inicio=(0, 50, 230), color_final=(0, 255, 0)):
+    # Calcula el valor intermedio de hue entre los dos colores
+    hue_inicio = colorsys.rgb_to_hsv(color_inicio[0] / 255, color_inicio[1] / 255, color_inicio[2] / 255)[0]
+    hue_final = colorsys.rgb_to_hsv(color_final[0] / 255, color_final[1] / 255, color_final[2] / 255)[0]
+    hue_intermedio = hue_inicio + (hue_final - hue_inicio) * float(posicion_actual) / longitud_ruta
+    
+    # Convierte el hue intermedio de nuevo a RGB
+    rgb = colorsys.hsv_to_rgb(hue_intermedio, 1, 1)
+    
+    # Convierte los valores RGB en una cadena hexadecimal
+    return "#{:02x}{:02x}{:02x}".format(int(rgb[0] * 255), int(rgb[1] * 255), int(rgb[2] * 255))
+
+
+# Función para mostrar el tablero y la ruta en el Canvas
 def mostrar_tablero_en_canvas(tablero, inicio, meta, ruta=None, exito=None):
     canvas.delete("all")
 
@@ -510,14 +407,16 @@ def mostrar_tablero_en_canvas(tablero, inicio, meta, ruta=None, exito=None):
             if (fila, columna) == inicio:
                 canvas.create_rectangle(x1, y1, x2, y2, fill="blue", outline="black")
             elif (fila, columna) == meta:
-                canvas.create_rectangle(x1, y1, x2, y2, fill="orange", outline="black")
+                canvas.create_rectangle(x1, y1, x2, y2, fill="green", outline="black")
             elif tablero[fila][columna] == 1:
                 canvas.create_rectangle(x1, y1, x2, y2, fill="black", outline="black")
             elif ruta and (fila, columna) in ruta:
                 if exito is None:
                     canvas.create_rectangle(x1, y1, x2, y2, fill="gray", outline="black")
                 elif exito:
-                    canvas.create_rectangle(x1, y1, x2, y2, fill="green", outline="black")
+                    posicion_actual = ruta.index((fila, columna))
+                    color = generar_color_gradiente(posicion_actual, len(ruta))
+                    canvas.create_rectangle(x1, y1, x2, y2, fill=color, outline="black")
                 else:
                     canvas.create_rectangle(x1, y1, x2, y2, fill="red", outline="black")
             else:
@@ -646,6 +545,10 @@ def guardar_tablero(ventana_edicion):
 
 # Función para ejecutar los algoritmos de búsqueda
 def buscar_ruta():
+    global tablero, inicio, meta, trayectoria
+
+    ruta_var.set("0")
+    tiempo_var.set("0")
     # Obtener el algoritmo de búsqueda desde la interfaz gráfica
     algoritmo = algoritmo_var.get()
 
@@ -661,6 +564,11 @@ def buscar_ruta():
     
     print(f"Algoritmo: {algoritmo}")
     print(f"Tiempo de ejecución: {tiempo_ejecucion} segundos")
+    print(f"Tamaño de la ruta: {len(trayectoria)}")
+
+    # Actualizar el tamaño de la ruta y el tiempo de ejecución en la interfaz gráfica
+    ruta_var.set(str(len(trayectoria)))
+    tiempo_var.set(str(round(tiempo_ejecucion, 4)))
 
 
 # Ventana principal de la interfaz gráfica
@@ -709,10 +617,23 @@ buscar_button = tk.Button(ventana, text="Buscar", command=buscar_ruta, font=("Ar
 buscar_button.grid(row=8, column=1, columnspan=2, padx=1, pady=1)
 
 # Resultados tamaño de la ruta
+ruta_label = tk.Label(ventana, text="Longitud de ruta:")
+ruta_label.grid(row=27, column=1, padx=1, pady=1)
+ruta_var = tk.StringVar()
+ruta_var.set("0")
+ruta_entry = tk.Entry(ventana, state="readonly",justify="center", width=6, textvariable=ruta_var)
+ruta_entry.grid(row=27, column=2, padx=1, pady=1)
+
+# Resultados tiempo de ejecución
+tiempo_label = tk.Label(ventana, text="Tiempo de ejecución:")
+tiempo_label.grid(row=28, column=1, padx=1, pady=1)
+tiempo_var = tk.StringVar()
+tiempo_var.set("0")
+tiempo_entry = tk.Entry(ventana, state="readonly",justify="center", width=6, textvariable=tiempo_var)
+tiempo_entry.grid(row=28, column=2, padx=1, pady=1)
 
 # Crear un tablero inicial
 crear_tablero(10, FACIL)
 mostrar_tablero_en_canvas(tablero, inicio, meta)
 
-# Iniciar la interfaz gráfica
 ventana.mainloop()

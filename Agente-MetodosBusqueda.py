@@ -4,7 +4,6 @@ import time
 import heapq
 import tkinter as tk
 
-
 # Definir constantes para la dificultad
 FACIL = 0
 MEDIO = 1
@@ -50,6 +49,7 @@ def crear_tablero(N, dificultad):
     tablero_edicion = np.copy(tablero)
     return tablero, inicio, meta
 
+
 # Función para visualizar el tablero en la consola
 def mostrar_tablero(tablero, inicio, meta, trayectoria=None):
     N = len(tablero)
@@ -76,7 +76,8 @@ def mostrar_tablero(tablero, inicio, meta, trayectoria=None):
         print()
     print()
 
-# Función para obtener los vecinos de un nodo. Los nodos adyacentes que no son obstáculos
+
+# Función para obtener los vecinos de un nodo
 def obtener_vecinos(tablero, nodo):
     # Obtener el tamaño del tablero
     N = len(tablero)
@@ -91,17 +92,46 @@ def obtener_vecinos(tablero, nodo):
     if fila > 0 and tablero[fila - 1][columna] != 1:
         vecinos.append((fila - 1, columna))
     
+    # Si el nodo no esta en la última columna, agregar el vecino de la derecha
+    if columna < N - 1 and tablero[fila][columna + 1] != 1:
+        vecinos.append((fila, columna + 1))
+
+    # Si el nodo no esta en la primera columna, agregar el vecino de la izquierda
+    if columna > 0 and tablero[fila][columna - 1] != 1:
+        vecinos.append((fila, columna - 1))
+
     # Si el nodo no esta en la última fila, agregar el vecino de abajo
     if fila < N - 1 and tablero[fila + 1][columna] != 1:
         vecinos.append((fila + 1, columna))
     
-    # Si el nodo no esta en la primera columna, agregar el vecino de la izquierda
-    if columna > 0 and tablero[fila][columna - 1] != 1:
-        vecinos.append((fila, columna - 1))
+    return vecinos
+
+
+def obtener_vecinosDFS(tablero, nodo):
+    # Obtener el tamaño del tablero
+    N = len(tablero)
+    
+    # Obtener la fila y columna del nodo
+    fila, columna = nodo
+    
+    # Crear una lista para almacenar los vecinos
+    vecinos = []
+    
+    # Si el nodo no esta en la primera fila, agregar el vecino de arriba
+    if fila > 0 and tablero[fila - 1][columna] != 1:
+        vecinos.append(((fila - 1, columna), 0))
     
     # Si el nodo no esta en la última columna, agregar el vecino de la derecha
     if columna < N - 1 and tablero[fila][columna + 1] != 1:
-        vecinos.append((fila, columna + 1))
+        vecinos.append(((fila, columna + 1), 1))
+
+    # Si el nodo no esta en la primera columna, agregar el vecino de la izquierda
+    if columna > 0 and tablero[fila][columna - 1] != 1:
+        vecinos.append(((fila, columna - 1), 2))
+
+    # Si el nodo no esta en la última fila, agregar el vecino de abajo
+    if fila < N - 1 and tablero[fila + 1][columna] != 1:
+        vecinos.append(((fila + 1, columna), 3))
     
     return vecinos
 
@@ -116,9 +146,12 @@ def distancia_manhattan(nodo1, nodo2):
     
     return distancia
 
+
+# Función para esperar un tiempo proporcional al tamaño del tablero
 def esperar(tablero):
     tiempo = 1 / len(tablero)
     time.sleep(tiempo)
+
 
 # Algoritmo de Depth-First Search (DFS)
 def dfs(tablero, inicio, meta):
@@ -162,6 +195,76 @@ def dfs(tablero, inicio, meta):
     # Si no se encontró una trayectoria, retornar None
     mostrar_tablero_en_canvas(tablero, inicio, meta, list(visitados.keys()), False)
     return None, time.perf_counter() - inicio_tiempo
+
+
+# Algoritmo de Depth-First Search (DFS). Siempre visita al vecino de la derecha recursivamente, después al de abajo, luego al de la izquierda y por último al de arriba, como si recorriera un arnol en preorden
+def dfs2(tablero, inicio, meta):
+
+    # Iniciar el tiempo de ejecución
+    inicio_tiempo = time.perf_counter()
+
+    # Obtener el tamaño del tablero
+    N = len(tablero)
+
+    # Pila para almacenar los nodos
+    pila = []
+
+    # Diccionario para almacenar los nodos visitados
+    visitados = {}
+
+    # Agregar el nodo inicial a la pila
+    pila.append(inicio)
+
+    # Definir el orden de prioridad para las direcciones
+    direcciones_prioridad = [(0, -1), (1, 0), (0, 1), (-1, 0)]  # Izquierda, abajo, derecha, arriba
+
+    # Mientras la pila no esté vacía
+    while pila:
+        # Obtener el nodo actual de la pila
+        nodo_actual = pila[-1]
+
+        # Si el nodo actual es la meta, retornar la trayectoria
+        if nodo_actual == meta:
+            trayectoria = list(pila)
+            return trayectoria, time.perf_counter() - inicio_tiempo
+
+        # Si el nodo actual no ha sido visitado
+        if nodo_actual not in visitados:
+            # Marcar el nodo actual como visitado
+            visitados[nodo_actual] = True
+
+            # Encontrar la próxima dirección prioritaria para explorar
+            siguiente_direccion = None
+            for direccion in direcciones_prioridad:
+                vecino = (nodo_actual[0] + direccion[0], nodo_actual[1] + direccion[1])
+                if (
+                    0 <= vecino[0] < N
+                    and 0 <= vecino[1] < N
+                    and tablero[vecino[0]][vecino[1]] == 0
+                    and vecino not in visitados
+                ):
+                    siguiente_direccion = direccion
+                    break
+
+            if siguiente_direccion:
+                # Agregar el siguiente vecino a la pila
+                siguiente_nodo = (nodo_actual[0] + siguiente_direccion[0], nodo_actual[1] + siguiente_direccion[1])
+                pila.append(siguiente_nodo)
+            else:
+                # Si no hay vecinos en la dirección prioritaria, retroceder
+                pila.pop()
+        else:
+            # Si el nodo actual ya ha sido visitado, retroceder
+            pila.pop()
+
+        esperar(tablero)
+        mostrar_tablero_en_canvas(tablero, inicio, meta, list(visitados.keys()))
+
+    # Si no se encontró una trayectoria, retornar None
+    mostrar_tablero_en_canvas(tablero, inicio, meta, list(visitados.keys()), False)
+    return None, time.perf_counter() - inicio_tiempo
+
+
 
 # Función de Best-First Search (BFS)
 def best_first_search(tablero, inicio, meta):
@@ -210,6 +313,7 @@ def best_first_search(tablero, inicio, meta):
     # No hay trayectoria
     mostrar_tablero_en_canvas(tablero, inicio, meta, list(visitados.keys()), False)
     return None, time.perf_counter() - inicio_tiempo
+
 
 # Función de búsqueda A*
 def astar(tablero, inicio, meta):
@@ -311,6 +415,7 @@ def mostrar_tablero_en_canvas(tablero, inicio, meta, ruta=None, exito=None):
 
     ventana.update()
 
+
 # Función para crear un escenario
 def crear_escenario():
     global tablero, inicio, meta
@@ -338,6 +443,7 @@ def crear_escenario():
     
     # Mostrar el tablero en el Canvas
     mostrar_tablero_en_canvas(tablero, inicio, meta)    
+
 
 # Función para editar el tablero
 def editar_tablero():
@@ -371,14 +477,15 @@ def editar_tablero():
     # Cargar el tablero en la ventana de edición
     for fila in range(len(tablero_edicion)):
         for columna in range(len(tablero_edicion)):
-            celda = tk.Entry(ventana_edicion, width=2, validate="key", validatecommand=(validar_entrada_fn, "%P"))
+            celda = tk.Entry(ventana_edicion, width=3, validate="key", validatecommand=(validar_entrada_fn, "%P"))
             celda.grid(row=fila, column=columna)
             celda.insert(0, tablero_edicion[fila][columna])
+            celda.config(justify="center")
 
     # Botón para guardar el tablero editado
     guardar_button = tk.Button(ventana_edicion, text="Guardar", command=lambda: guardar_tablero(ventana_edicion))
+    guardar_button.grid(row=len(tablero_edicion) + 1, column=1, columnspan=len(tablero_edicion))
 
-    guardar_button.grid(row=len(tablero_edicion) + 1, column=0, columnspan=len(tablero_edicion))
 
 # Función para guardar el tablero editado
 def guardar_tablero(ventana_edicion):
@@ -391,27 +498,26 @@ def guardar_tablero(ventana_edicion):
             valor_celda = celda.get()
             if not valor_celda:
                 valor_celda = "0"
-            elif valor_celda == " ":
-                valor_celda = "0"
             elif valor_celda == "#":
                 valor_celda = "1"
             elif valor_celda == "I":
                 valor_celda = "2"
             elif valor_celda == "M":
                 valor_celda = "3"
+            else:
+                valor_celda = "0"
             tablero_edicion[fila][columna] = valor_celda
 
     # Convertir el tablero editado a una matriz de enteros
     tablero_edicion = tablero_edicion.astype(int)
 
-    # Asignar la posición de inicio y meta en una tupla, si existen
+    # Asignar la posición de inicio y meta
     if 2 in tablero_edicion:
         inicio = np.where(tablero_edicion == 2)
         inicio = (inicio[0][0], inicio[1][0])
     if 3 in tablero_edicion:
         meta = np.where(tablero_edicion == 3)
         meta = (meta[0][0], meta[1][0])
-
 
     # Eliminar los obstáculos en la posición de inicio y meta
     tablero_edicion[tablero_edicion == 2] = 0
@@ -422,6 +528,9 @@ def guardar_tablero(ventana_edicion):
 
     # Mostrar el tablero en el Canvas
     mostrar_tablero_en_canvas(tablero, inicio, meta)
+    
+    # Cerrar la ventana de edición
+    ventana_edicion.destroy()
 
 # Función para ejecutar los algoritmos de búsqueda
 def buscar_ruta():
@@ -430,7 +539,7 @@ def buscar_ruta():
 
     # Ejecutar el algoritmo de búsqueda especificado
     if algoritmo == "DFS":
-        trayectoria, tiempo_ejecucion = dfs(tablero, inicio, meta)
+        trayectoria, tiempo_ejecucion = dfs2(tablero, inicio, meta)
     elif algoritmo == "BFS":
         trayectoria, tiempo_ejecucion = best_first_search(tablero, inicio, meta)
     elif algoritmo == "A*":
@@ -439,19 +548,19 @@ def buscar_ruta():
     print(f"Algoritmo: {algoritmo}")
     print(f"Tiempo de ejecución: {tiempo_ejecucion} segundos")
 
-    
 
-# Crear la ventana principal de la interfaz gráfica
+# Ventana principal de la interfaz gráfica
 ventana = tk.Tk()
 ventana.title("Algoritmos de Búsqueda")
 
-# Crear un campo de entrada para el tamaño del tablero
-tamaño_tablero_label = tk.Label(ventana, text="Tamaño del Tablero:")
+# Campo de entrada para el tamaño del tablero
+tamaño_tablero_label = tk.Label(ventana, text="Tamaño del tablero:")
 tamaño_tablero_label.pack()
-tamaño_tablero_entry = tk.Entry(ventana)
+tamaño_tablero_entry = tk.Entry(ventana, justify="center", width=5)
 tamaño_tablero_entry.pack()
+tamaño_tablero_entry.insert(0, "10")
 
-# Crear opciones para la dificultad
+# Opción para la dificultad
 dificultad_label = tk.Label(ventana, text="Dificultad:")
 dificultad_label.pack()
 dificultad_var = tk.StringVar()
@@ -460,14 +569,14 @@ dificultad_optionmenu = tk.OptionMenu(ventana, dificultad_var, "Fácil", "Medio"
 dificultad_optionmenu.pack()
 
 # Botón para crear un escenario
-ejecutar_button = tk.Button(ventana, text="Crear", command=crear_escenario)
+ejecutar_button = tk.Button(ventana, text="Nuevo escenario", command=crear_escenario)
 ejecutar_button.pack()
 
 # Botón para editar el tablero
-editar_button = tk.Button(ventana, text="Editar", command=editar_tablero)
+editar_button = tk.Button(ventana, text="Editar escenario", command=editar_tablero)
 editar_button.pack()
 
-# Crear opciones para el algoritmo de búsqueda
+# Opción para el algoritmo de búsqueda
 algoritmo_label = tk.Label(ventana, text="Algoritmo:")
 algoritmo_label.pack()
 algoritmo_var = tk.StringVar()
@@ -475,12 +584,17 @@ algoritmo_var.set("DFS")
 algoritmo_optionmenu = tk.OptionMenu(ventana, algoritmo_var, "DFS", "BFS", "A*")
 algoritmo_optionmenu.pack()
 
-buscar_button = tk.Button(ventana, text="Buscar", command=buscar_ruta)
+# Botón para ejecutar el algoritmo de búsqueda. fuente por defecto en negrita en negrita
+buscar_button = tk.Button(ventana, text="Buscar", command=buscar_ruta, font=("Arial", 11, "bold"))
 buscar_button.pack()
 
-# Crear un Canvas para mostrar el tablero
+# Canvas para mostrar el tablero
 canvas = tk.Canvas(ventana, width=500, height=500)
 canvas.pack()
+
+# Crear un tablero inicial
+crear_tablero(10, FACIL)
+mostrar_tablero_en_canvas(tablero, inicio, meta)
 
 # Iniciar la interfaz gráfica
 ventana.mainloop()

@@ -459,7 +459,7 @@ def editar_tablero():
     global tablero, tablero_edicion, inicio, meta
 
     if tablero_edicion is None:
-        tablero_edicion = np.ndarray((10, 10), dtype=str)
+        tablero_edicion = np.ndarray((20, 20), dtype=str)
         tablero_edicion.fill("0")
 
     tablero_edicion = tablero_edicion.astype(str)
@@ -549,6 +549,8 @@ def buscar_ruta():
 
     ruta_var.set("0")
     tiempo_var.set("0")
+    buscar_button.config(state="disabled")
+
     # Obtener el algoritmo de búsqueda desde la interfaz gráfica
     algoritmo = algoritmo_var.get()
 
@@ -570,6 +572,8 @@ def buscar_ruta():
     ruta_var.set(str(len(trayectoria)))
     tiempo_var.set(str(round(tiempo_ejecucion, 4)))
 
+    buscar_button.config(state="normal")
+
 
 # Ventana principal de la interfaz gráfica
 ventana = tk.Tk()
@@ -586,13 +590,13 @@ tamaño_tablero_label = tk.Label(ventana, text="Tamaño del tablero:")
 tamaño_tablero_label.grid(row=3, column=1, padx=1, pady=1)
 tamaño_tablero_entry = tk.Entry(ventana, justify="center", width=5)
 tamaño_tablero_entry.grid(row=3, column=2, padx=1, pady=1)
-tamaño_tablero_entry.insert(0, "10")
+tamaño_tablero_entry.insert(0, "20")
 
 # Opción para la dificultad
 dificultad_label = tk.Label(ventana, text="Dificultad:")
 dificultad_label.grid(row=4, column=1, padx=1, pady=1)
 dificultad_var = tk.StringVar()
-dificultad_var.set("Fácil   ")
+dificultad_var.set("Medio")
 dificultad_optionmenu = tk.OptionMenu(ventana, dificultad_var, "Fácil   ", "Medio", "Difícil ")
 dificultad_optionmenu.grid(row=4, column=2, padx=1, pady=1)
 
@@ -633,7 +637,7 @@ tiempo_entry = tk.Entry(ventana, state="readonly",justify="center", width=6, tex
 tiempo_entry.grid(row=28, column=2, padx=1, pady=1)
 
 # Crear un tablero inicial
-crear_tablero(10, FACIL)
+crear_tablero(20, MEDIO)
 mostrar_tablero_en_canvas(tablero, inicio, meta)
 
 ventana.mainloop()

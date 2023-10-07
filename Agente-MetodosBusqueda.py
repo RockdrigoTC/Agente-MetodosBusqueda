@@ -20,6 +20,7 @@ def crear_tablero(N, dificultad):
     tablero = np.zeros((N, N), dtype=int)
     
     num_obstaculos = 0
+    separacion = int(N / 2)
 
     # Generar dificultad de obstáculos
     if dificultad == 0:
@@ -96,44 +97,16 @@ def obtener_vecinos(tablero, nodo):
     if columna < N - 1 and tablero[fila][columna + 1] != 1:
         vecinos.append((fila, columna + 1))
 
-    # Si el nodo no esta en la primera columna, agregar el vecino de la izquierda
-    if columna > 0 and tablero[fila][columna - 1] != 1:
-        vecinos.append((fila, columna - 1))
-
     # Si el nodo no esta en la última fila, agregar el vecino de abajo
     if fila < N - 1 and tablero[fila + 1][columna] != 1:
         vecinos.append((fila + 1, columna))
     
-    return vecinos
-
-
-def obtener_vecinosDFS(tablero, nodo):
-    # Obtener el tamaño del tablero
-    N = len(tablero)
-    
-    # Obtener la fila y columna del nodo
-    fila, columna = nodo
-    
-    # Crear una lista para almacenar los vecinos
-    vecinos = []
-    
-    # Si el nodo no esta en la primera fila, agregar el vecino de arriba
-    if fila > 0 and tablero[fila - 1][columna] != 1:
-        vecinos.append(((fila - 1, columna), 0))
-    
-    # Si el nodo no esta en la última columna, agregar el vecino de la derecha
-    if columna < N - 1 and tablero[fila][columna + 1] != 1:
-        vecinos.append(((fila, columna + 1), 1))
-
     # Si el nodo no esta en la primera columna, agregar el vecino de la izquierda
     if columna > 0 and tablero[fila][columna - 1] != 1:
-        vecinos.append(((fila, columna - 1), 2))
-
-    # Si el nodo no esta en la última fila, agregar el vecino de abajo
-    if fila < N - 1 and tablero[fila + 1][columna] != 1:
-        vecinos.append(((fila + 1, columna), 3))
+        vecinos.append((fila, columna - 1))
     
     return vecinos
+
 
 # función para obtener la distancia Manhattan entre dos nodos
 def distancia_manhattan(nodo1, nodo2):
@@ -154,7 +127,7 @@ def esperar(tablero):
 
 
 # Algoritmo de Depth-First Search (DFS)
-def dfs(tablero, inicio, meta):
+def dfs2(tablero, inicio, meta):
 
     # Iniciar el tiempo de ejecución
     inicio_tiempo = time.perf_counter()
@@ -197,14 +170,10 @@ def dfs(tablero, inicio, meta):
     return None, time.perf_counter() - inicio_tiempo
 
 
-# Algoritmo de Depth-First Search (DFS). Siempre visita al vecino de la derecha recursivamente, después al de abajo, luego al de la izquierda y por último al de arriba, como si recorriera un arnol en preorden
-def dfs2(tablero, inicio, meta):
-
+# Algoritmo de Depth-First Search (DFS)
+def dfs(tablero, inicio, meta):
     # Iniciar el tiempo de ejecución
     inicio_tiempo = time.perf_counter()
-
-    # Obtener el tamaño del tablero
-    N = len(tablero)
 
     # Pila para almacenar los nodos
     pila = []
@@ -212,53 +181,41 @@ def dfs2(tablero, inicio, meta):
     # Diccionario para almacenar los nodos visitados
     visitados = {}
 
-    # Agregar el nodo inicial a la pila
-    pila.append(inicio)
+    # Agregar el nodo inicial a la pila junto con una ruta vacía
+    pila.append((inicio, []))
 
-    # Definir el orden de prioridad para las direcciones
-    direcciones_prioridad = [(0, -1), (1, 0), (0, 1), (-1, 0)]  # Izquierda, abajo, derecha, arriba
+    # Ruta más corta encontrada
+    ruta_corta = []
 
     # Mientras la pila no esté vacía
-    while pila:
-        # Obtener el nodo actual de la pila
-        nodo_actual = pila[-1]
+    while len(pila) > 0:
+        # Extraer el nodo y la ruta de la pila
+        nodo, ruta_actual = pila.pop()
 
-        # Si el nodo actual es la meta, retornar la trayectoria
-        if nodo_actual == meta:
-            trayectoria = list(pila)
-            return trayectoria, time.perf_counter() - inicio_tiempo
+        # Si el nodo no ha sido visitado
+        if nodo not in visitados:
+            # Marcar el nodo como visitado
+            visitados[nodo] = True
 
-        # Si el nodo actual no ha sido visitado
-        if nodo_actual not in visitados:
-            # Marcar el nodo actual como visitado
-            visitados[nodo_actual] = True
+            # Agregar el nodo a la ruta actual
+            ruta_actual.append(nodo)
 
-            # Encontrar la próxima dirección prioritaria para explorar
-            siguiente_direccion = None
-            for direccion in direcciones_prioridad:
-                vecino = (nodo_actual[0] + direccion[0], nodo_actual[1] + direccion[1])
-                if (
-                    0 <= vecino[0] < N
-                    and 0 <= vecino[1] < N
-                    and tablero[vecino[0]][vecino[1]] == 0
-                    and vecino not in visitados
-                ):
-                    siguiente_direccion = direccion
-                    break
+            # Si el nodo es la meta, actualizar la ruta más corta encontrada
+            if nodo == meta:
+                if not ruta_corta or len(ruta_actual) < len(ruta_corta):
+                    ruta_corta = list(ruta_actual)
+                mostrar_tablero_en_canvas(tablero, inicio, meta, ruta_corta, True)
+                return ruta_corta, time.perf_counter() - inicio_tiempo
 
-            if siguiente_direccion:
-                # Agregar el siguiente vecino a la pila
-                siguiente_nodo = (nodo_actual[0] + siguiente_direccion[0], nodo_actual[1] + siguiente_direccion[1])
-                pila.append(siguiente_nodo)
-            else:
-                # Si no hay vecinos en la dirección prioritaria, retroceder
-                pila.pop()
-        else:
-            # Si el nodo actual ya ha sido visitado, retroceder
-            pila.pop()
+            # Obtener los vecinos del nodo
+            vecinos = obtener_vecinos(tablero, nodo)
 
-        esperar(tablero)
-        mostrar_tablero_en_canvas(tablero, inicio, meta, list(visitados.keys()))
+            # Agregar los vecinos a la pila junto con la ruta actual
+            for vecino in vecinos:
+                pila.append((vecino, list(ruta_actual)))
+
+            esperar(tablero)
+            mostrar_tablero_en_canvas(tablero, inicio, meta, list(visitados.keys()))
 
     # Si no se encontró una trayectoria, retornar None
     mostrar_tablero_en_canvas(tablero, inicio, meta, list(visitados.keys()), False)
@@ -266,8 +223,104 @@ def dfs2(tablero, inicio, meta):
 
 
 
+# Algoritmo de Breadth-First Search (BFS)
+def bfs2(tablero, inicio, meta):
+        # Iniciar el tiempo de ejecución
+        inicio_tiempo = time.perf_counter()
+    
+        # Cola para almacenar los nodos
+        cola = []
+        
+        # Diccionario para almacenar los nodos visitados
+        visitados = {}
+        
+        # Agregar el nodo inicial a la cola
+        cola.append(inicio)
+        
+        # Mientras la cola no este vacia
+        while len(cola) > 0:
+            # Extraer el nodo de la cola
+            nodo = cola.pop(0)
+            
+            # Si el nodo no ha sido visitado
+            if nodo not in visitados:
+                # Marcar el nodo como visitado
+                visitados[nodo] = True
+                
+                # Si el nodo es la meta, retornar la trayectoria
+                if nodo == meta:
+                    mostrar_tablero_en_canvas(tablero, inicio, meta, list(visitados.keys()), True)
+                    return list(visitados.keys()), time.perf_counter() - inicio_tiempo
+                
+                # Obtener los vecinos del nodo
+                vecinos = obtener_vecinos(tablero, nodo)
+                
+                # Agregar los vecinos a la cola
+                cola.extend(vecinos)
+    
+                esperar(tablero)
+                mostrar_tablero_en_canvas(tablero, inicio, meta, list(visitados.keys()))
+        
+        # Si no se encontró una trayectoria, retornar None
+        mostrar_tablero_en_canvas(tablero, inicio, meta, list(visitados.keys()), False)
+        return None, time.perf_counter() - inicio_tiempo
+
+
+
+# Algoritmo de Breadth-First Search (BFS)
+def bfs(tablero, inicio, meta):
+    # Iniciar el tiempo de ejecución
+    inicio_tiempo = time.perf_counter()
+
+    # Cola para almacenar los nodos junto con sus rutas
+    cola = []
+    
+    # Diccionario para almacenar los nodos visitados y sus rutas
+    visitados = {}
+    
+    # Agregar el nodo inicial a la cola junto con una ruta vacía
+    cola.append((inicio, []))
+    
+    # Ruta más corta encontrada
+    ruta_corta = []
+
+    # Mientras la cola no esté vacía
+    while len(cola) > 0:
+        # Extraer el nodo y la ruta de la cola
+        nodo, ruta_actual = cola.pop(0)
+        
+        # Si el nodo no ha sido visitado
+        if nodo not in visitados:
+            # Marcar el nodo como visitado
+            visitados[nodo] = True
+            
+            # Agregar el nodo a la ruta actual
+            ruta_actual.append(nodo)
+
+            # Si el nodo es la meta, actualizar la ruta más corta encontrada
+            if nodo == meta:
+                if not ruta_corta or len(ruta_actual) < len(ruta_corta):
+                    ruta_corta = list(ruta_actual)
+                mostrar_tablero_en_canvas(tablero, inicio, meta, ruta_corta, True)
+                return ruta_corta, time.perf_counter() - inicio_tiempo
+                
+            # Obtener los vecinos del nodo
+            vecinos = obtener_vecinos(tablero, nodo)
+            
+            # Agregar los vecinos a la cola junto con la ruta actual
+            for vecino in vecinos:
+                cola.append((vecino, list(ruta_actual)))
+
+            esperar(tablero)
+            mostrar_tablero_en_canvas(tablero, inicio, meta, list(visitados.keys()))
+    
+    # No hay trayectoria
+    mostrar_tablero_en_canvas(tablero, inicio, meta, list(visitados.keys()), False)
+    return None, time.perf_counter() - inicio_tiempo
+
+
 # Función de Best-First Search (BFS)
-def best_first_search(tablero, inicio, meta):
+def best_first_search2(tablero, inicio, meta):
 
     # Iniciar el tiempo de ejecución
     inicio_tiempo = time.perf_counter()
@@ -303,6 +356,63 @@ def best_first_search(tablero, inicio, meta):
             for vecino in vecinos:
                 distancia_hasta_meta = distancia_manhattan(vecino, meta)
                 cola_prioridad.append((vecino, distancia_hasta_meta))
+            
+            # Ordenar la cola de prioridad
+            cola_prioridad.sort(key=lambda x: x[1])
+
+            esperar(tablero)
+            mostrar_tablero_en_canvas(tablero, inicio, meta, list(visitados.keys()))
+    
+    # No hay trayectoria
+    mostrar_tablero_en_canvas(tablero, inicio, meta, list(visitados.keys()), False)
+    return None, time.perf_counter() - inicio_tiempo
+
+
+# Función de Best-First Search (BFS)
+def best_first_search(tablero, inicio, meta):
+
+    # Iniciar el tiempo de ejecución
+    inicio_tiempo = time.perf_counter()
+
+    # Cola de prioridad para almacenar los nodos
+    cola_prioridad = []
+    
+    # Diccionario para almacenar los nodos visitados y sus rutas
+    visitados = {}
+    
+    # Agregar el nodo inicial a la cola de prioridad junto con una ruta vacía
+    cola_prioridad.append((inicio, distancia_manhattan(inicio, meta), []))
+    
+    # Ruta más corta encontrada
+    ruta_corta = []
+
+    # Mientras la cola de prioridad no esté vacía
+    while len(cola_prioridad) > 0:
+        # Extraer el nodo, la distancia y la ruta de la cola de prioridad
+        nodo, _, ruta_actual = cola_prioridad.pop(0)
+        
+        # Si el nodo no ha sido visitado
+        if nodo not in visitados:
+            # Marcar el nodo como visitado
+            visitados[nodo] = True
+            
+            # Agregar el nodo a la ruta actual
+            ruta_actual.append(nodo)
+
+            # Si el nodo es la meta, actualizar la ruta más corta encontrada
+            if nodo == meta:
+                if not ruta_corta or len(ruta_actual) < len(ruta_corta):
+                    ruta_corta = list(ruta_actual)
+                mostrar_tablero_en_canvas(tablero, inicio, meta, ruta_corta, True)
+                return ruta_corta, time.perf_counter() - inicio_tiempo
+            
+            # Obtener los vecinos del nodo
+            vecinos = obtener_vecinos(tablero, nodo)
+            
+            # Agregar los vecinos a la cola de prioridad junto con la ruta actual
+            for vecino in vecinos:
+                distancia_hasta_meta = distancia_manhattan(vecino, meta)
+                cola_prioridad.append((vecino, distancia_hasta_meta, list(ruta_actual)))
             
             # Ordenar la cola de prioridad
             cola_prioridad.sort(key=lambda x: x[1])
@@ -431,11 +541,11 @@ def crear_escenario():
         tamaño_tablero = 10
 
     dificultad = dificultad_var.get()
-    if dificultad == "Fácil":
+    if dificultad.startswith("Fácil"):
         dificultad = FACIL
-    elif dificultad == "Medio": 
+    elif dificultad.startswith("Medio"): 
         dificultad = MEDIO
-    elif dificultad == "Difícil":
+    elif dificultad.startswith("Difícil"):
         dificultad = DIFICIL
 
     # Crear un tablero con el tamaño y dificultad especificados
@@ -465,6 +575,7 @@ def editar_tablero():
     # Crear una ventana para editar el tablero
     ventana_edicion = tk.Toplevel(ventana)
     ventana_edicion.title("Editar Tablero")
+    ventana_edicion.resizable(False, False)
 
     # Función para validar la entrada y limitarla a un solo carácter
     def validar_entrada(cadena):
@@ -532,6 +643,7 @@ def guardar_tablero(ventana_edicion):
     # Cerrar la ventana de edición
     ventana_edicion.destroy()
 
+
 # Función para ejecutar los algoritmos de búsqueda
 def buscar_ruta():
     # Obtener el algoritmo de búsqueda desde la interfaz gráfica
@@ -539,8 +651,10 @@ def buscar_ruta():
 
     # Ejecutar el algoritmo de búsqueda especificado
     if algoritmo == "DFS":
-        trayectoria, tiempo_ejecucion = dfs2(tablero, inicio, meta)
+        trayectoria, tiempo_ejecucion = dfs(tablero, inicio, meta)
     elif algoritmo == "BFS":
+        trayectoria, tiempo_ejecucion = bfs(tablero, inicio, meta)
+    elif algoritmo == "Best":
         trayectoria, tiempo_ejecucion = best_first_search(tablero, inicio, meta)
     elif algoritmo == "A*":
         trayectoria, tiempo_ejecucion = astar(tablero, inicio, meta)
@@ -552,45 +666,49 @@ def buscar_ruta():
 # Ventana principal de la interfaz gráfica
 ventana = tk.Tk()
 ventana.title("Algoritmos de Búsqueda")
+ventana.resizable(False, False)
+ventana.geometry("710x510")
+
+# Canvas para mostrar el tablero
+canvas = tk.Canvas(ventana, width=500, height=500)
+canvas.grid(row=0, column=0, rowspan=30, padx=1, pady=1)
 
 # Campo de entrada para el tamaño del tablero
 tamaño_tablero_label = tk.Label(ventana, text="Tamaño del tablero:")
-tamaño_tablero_label.pack()
+tamaño_tablero_label.grid(row=3, column=1, padx=1, pady=1)
 tamaño_tablero_entry = tk.Entry(ventana, justify="center", width=5)
-tamaño_tablero_entry.pack()
+tamaño_tablero_entry.grid(row=3, column=2, padx=1, pady=1)
 tamaño_tablero_entry.insert(0, "10")
 
 # Opción para la dificultad
 dificultad_label = tk.Label(ventana, text="Dificultad:")
-dificultad_label.pack()
+dificultad_label.grid(row=4, column=1, padx=1, pady=1)
 dificultad_var = tk.StringVar()
-dificultad_var.set("Fácil")
-dificultad_optionmenu = tk.OptionMenu(ventana, dificultad_var, "Fácil", "Medio", "Difícil")
-dificultad_optionmenu.pack()
+dificultad_var.set("Fácil   ")
+dificultad_optionmenu = tk.OptionMenu(ventana, dificultad_var, "Fácil   ", "Medio", "Difícil ")
+dificultad_optionmenu.grid(row=4, column=2, padx=1, pady=1)
 
 # Botón para crear un escenario
 ejecutar_button = tk.Button(ventana, text="Nuevo escenario", command=crear_escenario)
-ejecutar_button.pack()
+ejecutar_button.grid(row=5, column=1, columnspan=2, padx=1, pady=1)
 
 # Botón para editar el tablero
 editar_button = tk.Button(ventana, text="Editar escenario", command=editar_tablero)
-editar_button.pack()
+editar_button.grid(row=6, column=1, columnspan=2, padx=1, pady=1)
 
 # Opción para el algoritmo de búsqueda
 algoritmo_label = tk.Label(ventana, text="Algoritmo:")
-algoritmo_label.pack()
+algoritmo_label.grid(row=7, column=1, padx=1, pady=1)
 algoritmo_var = tk.StringVar()
 algoritmo_var.set("DFS")
-algoritmo_optionmenu = tk.OptionMenu(ventana, algoritmo_var, "DFS", "BFS", "A*")
-algoritmo_optionmenu.pack()
+algoritmo_optionmenu = tk.OptionMenu(ventana, algoritmo_var, "DFS", "BFS", "Best", "A*")
+algoritmo_optionmenu.grid(row=7, column=2, padx=1, pady=1)
 
 # Botón para ejecutar el algoritmo de búsqueda. fuente por defecto en negrita en negrita
 buscar_button = tk.Button(ventana, text="Buscar", command=buscar_ruta, font=("Arial", 11, "bold"))
-buscar_button.pack()
+buscar_button.grid(row=8, column=1, columnspan=2, padx=1, pady=1)
 
-# Canvas para mostrar el tablero
-canvas = tk.Canvas(ventana, width=500, height=500)
-canvas.pack()
+# Resultados tamaño de la ruta
 
 # Crear un tablero inicial
 crear_tablero(10, FACIL)

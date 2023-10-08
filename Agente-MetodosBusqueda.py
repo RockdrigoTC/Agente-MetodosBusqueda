@@ -1,18 +1,21 @@
+import os
 import numpy as np
 import random
 import time
 import heapq
 import tkinter as tk
 import colorsys
+from tkinter import messagebox
 
 # Definir constantes para la dificultad
 FACIL = 0
 MEDIO = 1
 DIFICIL = 2
 
-tablero = None
-tablero_edicion = None
-trayectoria = None
+# Variables globales
+tablero = []
+tablero_edicion = []
+trayectoria = []
 inicio = None
 meta = None
 
@@ -48,6 +51,13 @@ def crear_tablero(N, dificultad):
         columna = random.randint(0, N - 1)
         if (fila, columna) != inicio and (fila, columna) != meta:
             tablero[fila][columna] = 1
+
+    # Suavizar el tablero 
+    for fila in range(N):
+        for columna in range(N):
+            vecinos = obtener_vecinos(tablero, (fila, columna))
+            if len(vecinos) == 0:
+                tablero[fila][columna] = 1
 
     tablero_edicion = np.copy(tablero)
     return tablero, inicio, meta
@@ -405,14 +415,19 @@ def mostrar_tablero_en_canvas(tablero, inicio, meta, ruta=None, exito=None):
             y2 = y1 + ancho_celda
             
             if (fila, columna) == inicio:
-                canvas.create_rectangle(x1, y1, x2, y2, fill="blue", outline="black")
+                canvas.create_rectangle(x1, y1, x2, y2, fill="blue", outline="black", width=2)
+                canvas.create_text(x1 + ancho_celda / 2, y1 + ancho_celda / 2, text="I", font=("Arial", 10, "bold"))
             elif (fila, columna) == meta:
-                canvas.create_rectangle(x1, y1, x2, y2, fill="green", outline="black")
+                canvas.create_rectangle(x1, y1, x2, y2, fill="green", outline="black", width=2)
+                canvas.create_text(x1 + ancho_celda / 2, y1 + ancho_celda / 2, text="M", font=("Arial", 10, "bold"))
             elif tablero[fila][columna] == 1:
                 canvas.create_rectangle(x1, y1, x2, y2, fill="black", outline="black")
             elif ruta and (fila, columna) in ruta:
                 if exito is None:
-                    canvas.create_rectangle(x1, y1, x2, y2, fill="gray", outline="black")
+                    if ruta.index((fila, columna)) == len(ruta) - 1:
+                        canvas.create_rectangle(x1, y1, x2, y2, fill="red", outline="black")
+                    else:
+                        canvas.create_rectangle(x1, y1, x2, y2, fill="yellow", outline="black")
                 elif exito:
                     posicion_actual = ruta.index((fila, columna))
                     color = generar_color_gradiente(posicion_actual, len(ruta))
@@ -458,6 +473,11 @@ def crear_escenario():
 def editar_tablero():
     global tablero, tablero_edicion, inicio, meta
 
+    # Mostrar un mensaje si el tablero es demasiado grande
+    if len(tablero) > 30:
+        messagebox.showinfo("Editar Tablero", "El tablero es demasiado grande para editarlo.")
+        return None
+
     if tablero_edicion is None:
         tablero_edicion = np.ndarray((20, 20), dtype=str)
         tablero_edicion.fill("0")
@@ -484,10 +504,13 @@ def editar_tablero():
 
     validar_entrada_fn = ventana_edicion.register(validar_entrada)
 
+    # Obtener el ancho de las celdas
+    ancho_casilla = (int)(0.2 * len(tablero_edicion)) 
+
     # Cargar el tablero en la ventana de edición
     for fila in range(len(tablero_edicion)):
         for columna in range(len(tablero_edicion)):
-            celda = tk.Entry(ventana_edicion, width=3, validate="key", validatecommand=(validar_entrada_fn, "%P"))
+            celda = tk.Entry(ventana_edicion, width=ancho_casilla, validate="key", validatecommand=(validar_entrada_fn, "%P"))
             celda.grid(row=fila, column=columna)
             celda.insert(0, tablero_edicion[fila][columna])
             celda.config(justify="center")
@@ -549,7 +572,11 @@ def buscar_ruta():
 
     ruta_var.set("0")
     tiempo_var.set("0")
+    resultados_var.set("")
     buscar_button.config(state="disabled")
+    crear_escenario_button.config(state="disabled")
+    editar_button.config(state="disabled")
+
 
     # Obtener el algoritmo de búsqueda desde la interfaz gráfica
     algoritmo = algoritmo_var.get()
@@ -559,20 +586,26 @@ def buscar_ruta():
         trayectoria, tiempo_ejecucion = dfs(tablero, inicio, meta)
     elif algoritmo == "BFS":
         trayectoria, tiempo_ejecucion = bfs(tablero, inicio, meta)
-    elif algoritmo == "Best":
+    elif algoritmo == "BestF":
         trayectoria, tiempo_ejecucion = best_first_search(tablero, inicio, meta)
     elif algoritmo == "A*":
         trayectoria, tiempo_ejecucion = astar(tablero, inicio, meta)
     
-    print(f"Algoritmo: {algoritmo}")
-    print(f"Tiempo de ejecución: {tiempo_ejecucion} segundos")
-    print(f"Tamaño de la ruta: {len(trayectoria)}")
+    if trayectoria is None:
+        resultados_var.set("No se encontró una ruta.")
+        trayectoria = []
+
+    print(f"\nAlgoritmo: {algoritmo}")
+    print(f"Tiempo de ejecución: {round(tiempo_ejecucion, 4)} segundos")
+    print(f"Longitud de la ruta: {len(trayectoria)} unidades")
 
     # Actualizar el tamaño de la ruta y el tiempo de ejecución en la interfaz gráfica
     ruta_var.set(str(len(trayectoria)))
     tiempo_var.set(str(round(tiempo_ejecucion, 4)))
 
     buscar_button.config(state="normal")
+    crear_escenario_button.config(state="normal")
+    editar_button.config(state="normal")
 
 
 # Ventana principal de la interfaz gráfica
@@ -592,40 +625,50 @@ tamaño_tablero_entry = tk.Entry(ventana, justify="center", width=5)
 tamaño_tablero_entry.grid(row=3, column=2, padx=1, pady=1)
 tamaño_tablero_entry.insert(0, "20")
 
+# Contenedor para las opciones de dificultad y algoritmo
+opciones_frame = tk.Frame(ventana)
+opciones_frame.grid(row=4, column=1, rowspan=1, columnspan=2, padx=1, pady=1)
+
 # Opción para la dificultad
-dificultad_label = tk.Label(ventana, text="Dificultad:")
-dificultad_label.grid(row=4, column=1, padx=1, pady=1)
+dificultad_label = tk.Label(opciones_frame, text="Dificultad:")
+dificultad_label.grid(row=1, column=1, padx=1, pady=1)
 dificultad_var = tk.StringVar()
 dificultad_var.set("Medio")
-dificultad_optionmenu = tk.OptionMenu(ventana, dificultad_var, "Fácil   ", "Medio", "Difícil ")
-dificultad_optionmenu.grid(row=4, column=2, padx=1, pady=1)
+dificultad_optionmenu = tk.OptionMenu(opciones_frame, dificultad_var, "Fácil   ", "Medio", "Difícil ")
+dificultad_optionmenu.grid(row=1, column=2, padx=1, pady=1)
+
+# Opción para el algoritmo de búsqueda
+algoritmo_label = tk.Label(opciones_frame, text="Algoritmo:")
+algoritmo_label.grid(row=2, column=1, padx=1, pady=1)
+algoritmo_var = tk.StringVar()
+algoritmo_var.set("DFS")
+algoritmo_optionmenu = tk.OptionMenu(opciones_frame, algoritmo_var, "DFS", "BFS", "BestF", "A*")
+algoritmo_optionmenu.grid(row=2, column=2, padx=1, pady=1)
 
 # Botón para crear un escenario
-ejecutar_button = tk.Button(ventana, text="Nuevo escenario", command=crear_escenario)
-ejecutar_button.grid(row=5, column=1, columnspan=2, padx=1, pady=1)
+crear_escenario_button = tk.Button(ventana, text="Nuevo escenario", command=crear_escenario)
+crear_escenario_button.grid(row=6, column=1, columnspan=2, padx=1, pady=1)
 
 # Botón para editar el tablero
 editar_button = tk.Button(ventana, text="Editar escenario", command=editar_tablero)
-editar_button.grid(row=6, column=1, columnspan=2, padx=1, pady=1)
+editar_button.grid(row=7, column=1, columnspan=2, padx=1, pady=1)
 
-# Opción para el algoritmo de búsqueda
-algoritmo_label = tk.Label(ventana, text="Algoritmo:")
-algoritmo_label.grid(row=7, column=1, padx=1, pady=1)
-algoritmo_var = tk.StringVar()
-algoritmo_var.set("DFS")
-algoritmo_optionmenu = tk.OptionMenu(ventana, algoritmo_var, "DFS", "BFS", "Best", "A*")
-algoritmo_optionmenu.grid(row=7, column=2, padx=1, pady=1)
-
-# Botón para ejecutar el algoritmo de búsqueda. fuente por defecto en negrita en negrita
+# Botón para ejecutar el algoritmo de búsqueda
 buscar_button = tk.Button(ventana, text="Buscar", command=buscar_ruta, font=("Arial", 11, "bold"))
 buscar_button.grid(row=8, column=1, columnspan=2, padx=1, pady=1)
+
+# Resultados
+resultados_var = tk.StringVar()
+resultados_var.set("")
+resultados_label = tk.Label(ventana, textvariable=resultados_var, justify="left")
+resultados_label.grid(row=12, column=1, columnspan=2, padx=1, pady=1)
 
 # Resultados tamaño de la ruta
 ruta_label = tk.Label(ventana, text="Longitud de ruta:")
 ruta_label.grid(row=27, column=1, padx=1, pady=1)
 ruta_var = tk.StringVar()
 ruta_var.set("0")
-ruta_entry = tk.Entry(ventana, state="readonly",justify="center", width=6, textvariable=ruta_var)
+ruta_entry = tk.Entry(ventana, state="readonly",justify="center", width=7, textvariable=ruta_var)
 ruta_entry.grid(row=27, column=2, padx=1, pady=1)
 
 # Resultados tiempo de ejecución
@@ -633,11 +676,23 @@ tiempo_label = tk.Label(ventana, text="Tiempo de ejecución:")
 tiempo_label.grid(row=28, column=1, padx=1, pady=1)
 tiempo_var = tk.StringVar()
 tiempo_var.set("0")
-tiempo_entry = tk.Entry(ventana, state="readonly",justify="center", width=6, textvariable=tiempo_var)
+tiempo_entry = tk.Entry(ventana, state="readonly",justify="center", width=7, textvariable=tiempo_var)
 tiempo_entry.grid(row=28, column=2, padx=1, pady=1)
 
-# Crear un tablero inicial
-crear_tablero(20, MEDIO)
-mostrar_tablero_en_canvas(tablero, inicio, meta)
+# si existe un archivo de escenario en la carpeta, se carga (escenario.txt)
+if os.path.exists("escenario.txt"):
+    tablero = np.loadtxt("escenario.txt").astype(int)
+    inicio = np.where(tablero == 2)
+    inicio = (inicio[0][0], inicio[1][0])
+    meta = np.where(tablero == 3)
+    meta = (meta[0][0], meta[1][0])
+    tablero[tablero == 2] = 0
+    tablero[tablero == 3] = 0
+    tablero_edicion = np.copy(tablero)
+    mostrar_tablero_en_canvas(tablero, inicio, meta)
+else:
+    # Crear un tablero inicial
+    crear_tablero(20, MEDIO)
+    mostrar_tablero_en_canvas(tablero, inicio, meta)
 
 ventana.mainloop()

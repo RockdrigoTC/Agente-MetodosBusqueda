@@ -357,7 +357,7 @@ def astar(tablero, inicio, meta):
 
 
 # Función para generar un gradiente entre dos colores
-def generar_color_gradiente(posicion_actual, longitud_ruta, color_inicio=(0, 50, 230), color_final=(0, 255, 0)):
+def generar_color_gradiente(posicion_actual, longitud_ruta, color_inicio=(0, 50, 230), color_final=(0, 128, 0)):
     # Calcula el valor intermedio de hue entre los dos colores
     hue_inicio = colorsys.rgb_to_hsv(color_inicio[0] / 255, color_inicio[1] / 255, color_inicio[2] / 255)[0]
     hue_final = colorsys.rgb_to_hsv(color_final[0] / 255, color_final[1] / 255, color_final[2] / 255)[0]
@@ -650,7 +650,7 @@ ultimo_pintado = None
 
 # Ventana principal de la interfaz gráfica
 ventana = tk.Tk()
-ventana.title("Algoritmos de Búsqueda")
+ventana.title("Metodos de Búsqueda")
 ventana.resizable(False, False)
 ventana.geometry("710x510")
 

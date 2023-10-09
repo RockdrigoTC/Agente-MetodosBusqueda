@@ -376,7 +376,7 @@ def astar(tablero, inicio, meta):
 
 
 # Función para generar un gradiente entre dos colores
-def generar_color_gradiente(posicion_actual, longitud_ruta, color_inicio=(0, 50, 230), color_final=(0, 255, 0)):
+def generar_color_gradiente(posicion_actual, longitud_ruta, color_inicio=(0, 0, 255), color_final=(0, 255, 0)):
     # Calcula el valor intermedio de hue entre los dos colores
     hue_inicio = colorsys.rgb_to_hsv(color_inicio[0] / 255, color_inicio[1] / 255, color_inicio[2] / 255)[0]
     hue_final = colorsys.rgb_to_hsv(color_final[0] / 255, color_final[1] / 255, color_final[2] / 255)[0]
@@ -389,8 +389,8 @@ def generar_color_gradiente(posicion_actual, longitud_ruta, color_inicio=(0, 50,
     return "#{:02x}{:02x}{:02x}".format(int(rgb[0] * 255), int(rgb[1] * 255), int(rgb[2] * 255))
 
 
-# Función para mostrar el tablero y la ruta en el Canvas
-def mostrar_tablero_en_canvas(tablero, inicio, meta, ruta=None, exito=None):
+def mostrar_tablero_en_canvas_mapa(tablero, inicio, meta, ruta=None, exito=None):
+    canvas.delete("all")
     canvas.delete("all")
 
     N = len(tablero)
@@ -412,21 +412,51 @@ def mostrar_tablero_en_canvas(tablero, inicio, meta, ruta=None, exito=None):
                 canvas.create_text(x1 + ancho_celda / 2, y1 + ancho_celda / 2, text="M", font=("Arial", font, "bold"))
             elif tablero[fila][columna] == 1:
                 canvas.create_rectangle(x1, y1, x2, y2, fill="black", outline="black")
-            elif ruta and (fila, columna) in ruta:
-                if exito is None:
-                    if ruta.index((fila, columna)) == len(ruta) - 1:
-                        canvas.create_rectangle(x1, y1, x2, y2, fill="red", outline="black")
-                    else:
-                        canvas.create_rectangle(x1, y1, x2, y2, fill="yellow", outline="black")
-                elif exito:
-                    posicion_actual = ruta.index((fila, columna))
-                    color = generar_color_gradiente(posicion_actual, len(ruta))
-                    canvas.create_rectangle(x1, y1, x2, y2, fill=color, outline="black")
-                else:
-                    canvas.create_rectangle(x1, y1, x2, y2, fill="red", outline="black")
-            else:
+            elif tablero[fila][columna] == 0:
                 canvas.create_rectangle(x1, y1, x2, y2, fill="white", outline="black")
 
+    ventana.update()
+
+
+# Función para mostrar el tablero y la ruta en el Canvas
+def mostrar_tablero_en_canvas(tablero, inicio, meta, ruta=None, exito=None):
+    #canvas.delete("all")
+
+    N = len(tablero)
+    ancho_celda = 500 / N
+    font = (int)(200 / N)
+
+    if len(ruta) > 1 and ruta[-1] != meta:
+        fila, columna = ruta[-1]
+        if len(ruta) > 2:
+            fila2, columna2 = ruta[-2]
+            x3 = columna2 * ancho_celda
+            y3 = fila2 * ancho_celda
+            x4 = x3 + ancho_celda
+            y4 = y3 + ancho_celda
+        x1 = columna * ancho_celda
+        y1 = fila * ancho_celda
+        x2 = x1 + ancho_celda
+        y2 = y1 + ancho_celda
+        if exito is None:
+            if ruta.index((fila, columna)) == len(ruta) - 1:
+                canvas.create_rectangle(x1, y1, x2, y2, fill="blue", outline="black")
+            if len(ruta) > 2:
+                canvas.create_rectangle(x3, y3, x4, y4, fill="yellow", outline="black")
+        elif exito:
+            posicion_actual = ruta.index((fila, columna))
+            color = generar_color_gradiente(posicion_actual, len(ruta))
+            canvas.create_rectangle(x1, y1, x2, y2, fill=color, outline="black")
+        else:
+            for fila, columna in ruta:
+                # no pintar inicio y meta
+                if (fila, columna) != inicio and (fila, columna) != meta:
+                    x1 = columna * ancho_celda
+                    y1 = fila * ancho_celda
+                    x2 = x1 + ancho_celda
+                    y2 = y1 + ancho_celda
+                    canvas.create_rectangle(x1, y1, x2, y2, fill="red", outline="black")
+    
     ventana.update()
 
 
@@ -458,7 +488,7 @@ def crear_escenario():
     tablero, inicio, meta = crear_tablero(tamaño_tablero, dificultad)
     
     # Mostrar el tablero en el Canvas
-    mostrar_tablero_en_canvas(tablero, inicio, meta)    
+    mostrar_tablero_en_canvas_mapa(tablero, inicio, meta)    
 
 
 # Función para editar el tablero
@@ -562,7 +592,7 @@ def guardar_tablero(ventana_edicion):
     tablero = np.copy(tablero_edicion)
 
     # Mostrar el tablero en el Canvas
-    mostrar_tablero_en_canvas(tablero, inicio, meta)
+    mostrar_tablero_en_canvas_mapa(tablero, inicio, meta)
     
     # Cerrar la ventana de edición
     ventana_edicion.destroy()
@@ -578,6 +608,8 @@ def buscar_ruta():
     buscar_button.config(state="disabled")
     crear_escenario_button.config(state="disabled")
     editar_button.config(state="disabled")
+    canvas.delete("all")
+    mostrar_tablero_en_canvas_mapa(tablero, inicio, meta)
 
 
     # Obtener el algoritmo de búsqueda desde la interfaz gráfica
@@ -626,6 +658,8 @@ ventana = tk.Tk()
 ventana.title("Algoritmos de Búsqueda")
 ventana.resizable(False, False)
 ventana.geometry("710x510")
+
+
 
 # Canvas para mostrar el tablero
 canvas = tk.Canvas(ventana, width=500, height=500)
@@ -702,10 +736,10 @@ if os.path.exists("escenario.txt"):
     tablero[tablero == 2] = 0
     tablero[tablero == 3] = 0
     tablero_edicion = np.copy(tablero)
-    mostrar_tablero_en_canvas(tablero, inicio, meta)
+    mostrar_tablero_en_canvas_mapa(tablero, inicio, meta)
 else:
     # Crear un tablero inicial
     crear_tablero(20, MEDIO)
-    mostrar_tablero_en_canvas(tablero, inicio, meta)
+    mostrar_tablero_en_canvas_mapa(tablero, inicio, meta)
 
 ventana.mainloop()

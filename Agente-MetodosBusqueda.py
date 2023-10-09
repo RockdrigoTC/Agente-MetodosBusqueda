@@ -401,6 +401,7 @@ def mostrar_tablero_en_canvas_mapa(tablero, inicio, meta, ruta=None, exito=None)
 
 # Función para mostrar el tablero y la ruta en el Canvas
 def mostrar_tablero_en_canvas(tablero, inicio, meta, ruta=None, exito=None):
+    global ultimo_pintado
     #canvas.delete("all")
 
     N = len(tablero)
@@ -421,12 +422,15 @@ def mostrar_tablero_en_canvas(tablero, inicio, meta, ruta=None, exito=None):
     y2 = y1 + ancho_celda
     if exito is None:
         if (fila, columna) != inicio and (fila, columna) != meta:
-            if ruta.index((fila, columna)) == len(ruta) - 1:
-                canvas.create_rectangle(x1, y1, x2, y2, fill="blue", outline="black")
+            canvas.create_rectangle(x1, y1, x2, y2, fill="blue", outline="black")
+            ultimo_pintado = (fila, columna)
         if len(ruta) > 2:
             if (fila2, columna2) != inicio and (fila2, columna2) != meta:
-                canvas.create_rectangle(x3, y3, x4, y4, fill="yellow", outline="black")
+                canvas.create_rectangle(x3, y3, x4, y4, fill="gray", outline="black")
     elif exito:
+        canvas.create_rectangle(ultimo_pintado[1]*ancho_celda, ultimo_pintado[0]*ancho_celda, 
+                                ultimo_pintado[1]*ancho_celda+ancho_celda, ultimo_pintado[0]*ancho_celda+ancho_celda, 
+                                fill="gray", outline="black")
         for fila, columna in ruta:
             if (fila, columna) != inicio and (fila, columna) != meta:
                 esperar(tablero)
@@ -440,7 +444,6 @@ def mostrar_tablero_en_canvas(tablero, inicio, meta, ruta=None, exito=None):
                 ventana.update()
     else:
         for fila, columna in ruta:
-            # no pintar inicio y meta
             if (fila, columna) != inicio and (fila, columna) != meta:
                 x1 = columna * ancho_celda
                 y1 = fila * ancho_celda
@@ -643,6 +646,7 @@ tablero_edicion = []
 trayectoria = []
 inicio = None
 meta = None
+ultimo_pintado = None
 
 # Ventana principal de la interfaz gráfica
 ventana = tk.Tk()

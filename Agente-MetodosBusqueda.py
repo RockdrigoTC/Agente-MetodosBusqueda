@@ -7,17 +7,6 @@ import tkinter as tk
 import colorsys
 from tkinter import messagebox
 
-# Definir constantes para la dificultad
-FACIL = 0
-MEDIO = 1
-DIFICIL = 2
-
-# Variables globales
-tablero = []
-tablero_edicion = []
-trayectoria = []
-inicio = None
-meta = None
 
 # Función para crear un tablero de N x N con obstáculos
 def crear_tablero(N, dificultad):
@@ -33,7 +22,7 @@ def crear_tablero(N, dificultad):
         separacion = int(N / 2)
     elif dificultad == 1:
         num_obstaculos = int(0.2 * N * N)
-        separacion = int(N / 1.5)
+        separacion = int(N / 1.4)
     elif dificultad == 2:
         num_obstaculos = int(0.4 * N * N)
         separacion = int(N / 1.25)
@@ -134,7 +123,7 @@ def distancia_manhattan(nodo1, nodo2):
 
 # Función para esperar un tiempo proporcional al tamaño del tablero
 def esperar(tablero):
-    tiempo = 1 / len(tablero)
+    tiempo = 0.5 / len(tablero)
     time.sleep(tiempo)
 
 
@@ -406,6 +395,7 @@ def mostrar_tablero_en_canvas(tablero, inicio, meta, ruta=None, exito=None):
 
     N = len(tablero)
     ancho_celda = 500 / N
+    font = (int)(200 / N)
     
     for fila in range(N):
         for columna in range(N):
@@ -415,11 +405,11 @@ def mostrar_tablero_en_canvas(tablero, inicio, meta, ruta=None, exito=None):
             y2 = y1 + ancho_celda
             
             if (fila, columna) == inicio:
-                canvas.create_rectangle(x1, y1, x2, y2, fill="blue", outline="black", width=2)
-                canvas.create_text(x1 + ancho_celda / 2, y1 + ancho_celda / 2, text="I", font=("Arial", 10, "bold"))
+                canvas.create_rectangle(x1, y1, x2, y2, fill="blue", outline="blue", width=3)
+                canvas.create_text(x1 + ancho_celda / 2, y1 + ancho_celda / 2, text="I", font=("Arial", font, "bold"))
             elif (fila, columna) == meta:
-                canvas.create_rectangle(x1, y1, x2, y2, fill="green", outline="black", width=2)
-                canvas.create_text(x1 + ancho_celda / 2, y1 + ancho_celda / 2, text="M", font=("Arial", 10, "bold"))
+                canvas.create_rectangle(x1, y1, x2, y2, fill="green", outline="green", width=3)
+                canvas.create_text(x1 + ancho_celda / 2, y1 + ancho_celda / 2, text="M", font=("Arial", font, "bold"))
             elif tablero[fila][columna] == 1:
                 canvas.create_rectangle(x1, y1, x2, y2, fill="black", outline="black")
             elif ruta and (fila, columna) in ruta:
@@ -454,6 +444,8 @@ def crear_escenario():
     else:
         tamaño_tablero = 10
 
+    tamaño_tablero_entry.delete(0, tk.END)
+    tamaño_tablero_entry.insert(0, str(tamaño_tablero))
     dificultad = dificultad_var.get()
     if dificultad.startswith("Fácil"):
         dificultad = FACIL
@@ -510,10 +502,20 @@ def editar_tablero():
     # Cargar el tablero en la ventana de edición
     for fila in range(len(tablero_edicion)):
         for columna in range(len(tablero_edicion)):
+            valor = tablero_edicion[fila][columna]
+            color = "black"
+            if valor == "I":
+                color = "blue"
+                font = ("Arial", 11, "bold")
+            elif valor == "M":
+                color = "green"
+                font = ("Arial", 11, "bold")
+            else:
+                font = ("Arial", 10)
             celda = tk.Entry(ventana_edicion, width=ancho_casilla, validate="key", validatecommand=(validar_entrada_fn, "%P"))
             celda.grid(row=fila, column=columna)
             celda.insert(0, tablero_edicion[fila][columna])
-            celda.config(justify="center")
+            celda.config(justify="center", fg=color, font=font)
 
     # Botón para guardar el tablero editado
     guardar_button = tk.Button(ventana_edicion, text="Guardar", command=lambda: guardar_tablero(ventana_edicion))
@@ -533,9 +535,9 @@ def guardar_tablero(ventana_edicion):
                 valor_celda = "0"
             elif valor_celda == "#":
                 valor_celda = "1"
-            elif valor_celda == "I":
+            elif valor_celda == "I" or valor_celda == "i":
                 valor_celda = "2"
-            elif valor_celda == "M":
+            elif valor_celda == "M" or valor_celda == "m":
                 valor_celda = "3"
             else:
                 valor_celda = "0"
@@ -607,6 +609,17 @@ def buscar_ruta():
     crear_escenario_button.config(state="normal")
     editar_button.config(state="normal")
 
+# Definir constantes para la dificultad
+FACIL = 0
+MEDIO = 1
+DIFICIL = 2
+
+# Variables globales
+tablero = []
+tablero_edicion = []
+trayectoria = []
+inicio = None
+meta = None
 
 # Ventana principal de la interfaz gráfica
 ventana = tk.Tk()

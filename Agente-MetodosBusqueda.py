@@ -655,7 +655,6 @@ ventana.resizable(False, False)
 ventana.geometry("710x510")
 
 
-
 # Canvas para mostrar el tablero
 canvas = tk.Canvas(ventana, width=500, height=500)
 canvas.grid(row=0, column=0, rowspan=30, padx=1, pady=1)

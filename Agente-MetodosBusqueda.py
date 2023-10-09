@@ -161,14 +161,9 @@ def dfs(tablero, inicio, meta):
             if nodo == meta:
                 if not ruta_corta or len(ruta_actual) < len(ruta_corta):
                     ruta_corta = list(ruta_actual)
-                fin_tiempo = time.perf_counter() - inicio_tiempo
                 # Mostrar la trayectoria mas corta encontrada
-                ruta = []
-                for nodo in ruta_corta:
-                    esperar(tablero)
-                    ruta.append(nodo)
-                    mostrar_tablero_en_canvas(tablero, inicio, meta, ruta, True)
-                return ruta_corta, fin_tiempo
+                mostrar_tablero_en_canvas(tablero, inicio, meta, ruta_corta, True)
+                return ruta_corta, time.perf_counter() - inicio_tiempo
 
             # Obtener los vecinos del nodo
             vecinos = obtener_vecinos(tablero, nodo)
@@ -220,14 +215,9 @@ def bfs(tablero, inicio, meta):
                 if not ruta_corta or len(ruta_actual) < len(ruta_corta):
                     ruta_corta = list(ruta_actual)
 
-                fin_tiempo = time.perf_counter() - inicio_tiempo
                 # Mostrar la trayectoria mas corta encontrada
-                ruta = []
-                for nodo in ruta_corta:
-                    esperar(tablero)
-                    ruta.append(nodo)
-                    mostrar_tablero_en_canvas(tablero, inicio, meta, ruta, True)
-                return ruta_corta, fin_tiempo
+                mostrar_tablero_en_canvas(tablero, inicio, meta, ruta_corta, True)
+                return ruta_corta, time.perf_counter() - inicio_tiempo
                 
             # Obtener los vecinos del nodo
             vecinos = obtener_vecinos(tablero, nodo)
@@ -279,14 +269,10 @@ def best_first_search(tablero, inicio, meta):
             if nodo == meta:
                 if not ruta_corta or len(ruta_actual) < len(ruta_corta):
                     ruta_corta = list(ruta_actual)
-                fin_tiempo = time.perf_counter() - inicio_tiempo
+
                 # Mostrar la trayectoria mas corta encontrada
-                ruta = []
-                for nodo in ruta_corta:
-                    esperar(tablero)
-                    ruta.append(nodo)
-                    mostrar_tablero_en_canvas(tablero, inicio, meta, ruta, True)
-                return ruta_corta, fin_tiempo
+                mostrar_tablero_en_canvas(tablero, inicio, meta, ruta_corta, True)
+                return ruta_corta, time.perf_counter() - inicio_tiempo
             
             # Obtener los vecinos del nodo
             vecinos = obtener_vecinos(tablero, nodo)
@@ -319,8 +305,8 @@ def astar(tablero, inicio, meta):
     # Diccionario para almacenar los costos acumulativos
     costos_acumulativos = {inicio: 0}
     
-    # Diccionario para almacenar el padre de cada nodo
-    padres = {}
+    # Diccionario para almacenar el padre de cada nodo, inicializado con el nodo inicial
+    padres = {inicio: None}
     
     # Mientras la cola de prioridad no esté vacía
     while cola_prioridad:
@@ -332,18 +318,12 @@ def astar(tablero, inicio, meta):
             trayectoria = [meta]
             while nodo in padres:
                 nodo = padres[nodo]
-                trayectoria.append(nodo)
+                if nodo is not None:
+                    trayectoria.append(nodo)
             trayectoria.reverse()
-            fin_tiempo = time.perf_counter() - inicio_tiempo
-            
-            # Mostrar la trayectoria en el Canvas paso a paso
-            ruta = []
-            for nodo in trayectoria:
-                esperar(tablero)
-                ruta.append(nodo)
-                mostrar_tablero_en_canvas(tablero, inicio, meta, ruta, True)
-
-            return trayectoria, fin_tiempo
+            # Mostrar la trayectoria mas corta encontrada
+            mostrar_tablero_en_canvas(tablero, inicio, meta, trayectoria, True)
+            return trayectoria, time.perf_counter() - inicio_tiempo
         
         # Obtener los vecinos del nodo
         vecinos = obtener_vecinos(tablero, nodo)
@@ -375,8 +355,9 @@ def astar(tablero, inicio, meta):
     return None, time.perf_counter() - inicio_tiempo
 
 
+
 # Función para generar un gradiente entre dos colores
-def generar_color_gradiente(posicion_actual, longitud_ruta, color_inicio=(0, 0, 255), color_final=(0, 255, 0)):
+def generar_color_gradiente(posicion_actual, longitud_ruta, color_inicio=(0, 50, 230), color_final=(0, 255, 0)):
     # Calcula el valor intermedio de hue entre los dos colores
     hue_inicio = colorsys.rgb_to_hsv(color_inicio[0] / 255, color_inicio[1] / 255, color_inicio[2] / 255)[0]
     hue_final = colorsys.rgb_to_hsv(color_final[0] / 255, color_final[1] / 255, color_final[2] / 255)[0]
@@ -426,36 +407,46 @@ def mostrar_tablero_en_canvas(tablero, inicio, meta, ruta=None, exito=None):
     ancho_celda = 500 / N
     font = (int)(200 / N)
 
-    if len(ruta) > 1 and ruta[-1] != meta:
-        fila, columna = ruta[-1]
-        if len(ruta) > 2:
-            fila2, columna2 = ruta[-2]
-            x3 = columna2 * ancho_celda
-            y3 = fila2 * ancho_celda
-            x4 = x3 + ancho_celda
-            y4 = y3 + ancho_celda
-        x1 = columna * ancho_celda
-        y1 = fila * ancho_celda
-        x2 = x1 + ancho_celda
-        y2 = y1 + ancho_celda
-        if exito is None:
+
+    fila, columna = ruta[-1]
+    if len(ruta) > 2:
+        fila2, columna2 = ruta[-2]
+        x3 = columna2 * ancho_celda
+        y3 = fila2 * ancho_celda
+        x4 = x3 + ancho_celda
+        y4 = y3 + ancho_celda
+    x1 = columna * ancho_celda
+    y1 = fila * ancho_celda
+    x2 = x1 + ancho_celda
+    y2 = y1 + ancho_celda
+    if exito is None:
+        if (fila, columna) != inicio and (fila, columna) != meta:
             if ruta.index((fila, columna)) == len(ruta) - 1:
                 canvas.create_rectangle(x1, y1, x2, y2, fill="blue", outline="black")
-            if len(ruta) > 2:
+        if len(ruta) > 2:
+            if (fila2, columna2) != inicio and (fila2, columna2) != meta:
                 canvas.create_rectangle(x3, y3, x4, y4, fill="yellow", outline="black")
-        elif exito:
-            posicion_actual = ruta.index((fila, columna))
-            color = generar_color_gradiente(posicion_actual, len(ruta))
-            canvas.create_rectangle(x1, y1, x2, y2, fill=color, outline="black")
-        else:
-            for fila, columna in ruta:
-                # no pintar inicio y meta
-                if (fila, columna) != inicio and (fila, columna) != meta:
-                    x1 = columna * ancho_celda
-                    y1 = fila * ancho_celda
-                    x2 = x1 + ancho_celda
-                    y2 = y1 + ancho_celda
-                    canvas.create_rectangle(x1, y1, x2, y2, fill="red", outline="black")
+    elif exito:
+        for fila, columna in ruta:
+            if (fila, columna) != inicio and (fila, columna) != meta:
+                esperar(tablero)
+                posicion_actual = ruta.index((fila, columna))
+                color = generar_color_gradiente(posicion_actual, len(ruta))
+                x1 = columna * ancho_celda
+                y1 = fila * ancho_celda
+                x2 = x1 + ancho_celda
+                y2 = y1 + ancho_celda
+                canvas.create_rectangle(x1, y1, x2, y2, fill=color, outline="black")
+                ventana.update()
+    else:
+        for fila, columna in ruta:
+            # no pintar inicio y meta
+            if (fila, columna) != inicio and (fila, columna) != meta:
+                x1 = columna * ancho_celda
+                y1 = fila * ancho_celda
+                x2 = x1 + ancho_celda
+                y2 = y1 + ancho_celda
+                canvas.create_rectangle(x1, y1, x2, y2, fill="red", outline="black")
     
     ventana.update()
 

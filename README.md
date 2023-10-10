@@ -12,11 +12,11 @@
 ```
 python --version
 ```
-5. Luego, instala las bibliotecas necesarias usando pip (el administrador de paquetes de Python). Ejecuta estos comandos en la ventana de comandos:
+5. Luego, instala las bibliotecas necesarias usando pip (el administrador de paquetes de Python). Ejecuta estos comandos en la cmd:
 ```
 pip install numpy
+pip install tk
 ```
-6. No necesitas instalar tkinter por separado en Windows, ya que generalmente viene incluido en la instalación estándar de Python.
 
 **Linux:**
 1. La mayoría de las distribuciones de Linux ya incluyen Python. Abre una terminal y verifica si Python está instalado ejecutando:
@@ -24,16 +24,37 @@ pip install numpy
 python --version
 ```
 2. Si Python no está instalado, puedes instalarlo usando el gestor de paquetes de tu distribución. Por ejemplo, en Ubuntu, puedes ejecutar:
-```
-sudo apt-get install python3
-```
-3. Luego, instala las bibliotecas necesarias con pip:
+- Debian
+  ```
+  sudo apt install python3
+  ```
+- Fedora
+  ```
+  sudo dnf install python3
+  ```
+- Arch
+  ```
+  sudo pacman -S python
+  ```
+3. Luego, instala Numpy con pip:
 ```
 pip install numpy
 ```
-4. Tkinter generalmente viene preinstalado en la mayoría de las distribuciones de Linux.
+4. Para instalar Tkinter ejecuta el siguiente comando en la terminal:
+- Debian
+  ```
+  sudo apt install python3-tk
+  ```
+- Fedora
+  ```
+  sudo dnf install python3-tkinter
+  ```
+- Arch
+  ```
+  sudo pacman -S tk
+  ```
 
-5. Una vez instaladas las dependencias, puedes ejecutar el programa "MetodosBusqueda.py" con el siguiente comando:
+6. Una vez instaladas las dependencias, puedes ejecutar el programa "MetodosBusqueda.py" con el siguiente comando:
 ```
 python MetodosBusqueda.py
 ```

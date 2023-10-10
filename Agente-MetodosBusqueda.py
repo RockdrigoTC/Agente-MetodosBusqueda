@@ -375,7 +375,7 @@ def mostrar_tablero_en_canvas_mapa(tablero, inicio, meta, ruta=None, exito=None)
     canvas.delete("all")
 
     N = len(tablero)
-    ancho_celda = 500 / N
+    ancho_celda = 600 / N
     font = (int)(200 / N)
     
     for fila in range(N):
@@ -405,7 +405,7 @@ def mostrar_tablero_en_canvas(tablero, inicio, meta, ruta=None, exito=None):
     #canvas.delete("all")
 
     N = len(tablero)
-    ancho_celda = 500 / N
+    ancho_celda = 600 / N
     font = (int)(200 / N)
 
 
@@ -651,19 +651,28 @@ ultimo_pintado = None
 # Ventana principal de la interfaz gráfica
 ventana = tk.Tk()
 ventana.title("Metodos de Búsqueda")
+# centrar la ventana
+ancho_ventana = 820
+alto_ventana = 610
+x_ventana = ventana.winfo_screenwidth() // 2 - ancho_ventana // 2
+y_ventana = ventana.winfo_screenheight() // 2 - alto_ventana // 2
+ventana.geometry(f"{ancho_ventana}x{alto_ventana}+{x_ventana}+{y_ventana}")
 ventana.resizable(False, False)
-ventana.geometry("710x510")
 
 
 # Canvas para mostrar el tablero
-canvas = tk.Canvas(ventana, width=500, height=500)
+canvas = tk.Canvas(ventana, width=600, height=600)
 canvas.grid(row=0, column=0, rowspan=30, padx=1, pady=1)
 
+# Contenedor para el tamaño del tablero
+tamaño_tablero_frame = tk.Frame(ventana)
+tamaño_tablero_frame.grid(row=3, column=1, rowspan=1, columnspan=2, padx=1, pady=1)
+
 # Campo de entrada para el tamaño del tablero
-tamaño_tablero_label = tk.Label(ventana, text="Tamaño del tablero:")
-tamaño_tablero_label.grid(row=3, column=1, padx=1, pady=1)
-tamaño_tablero_entry = tk.Entry(ventana, justify="center", width=5)
-tamaño_tablero_entry.grid(row=3, column=2, padx=1, pady=1)
+tamaño_tablero_label = tk.Label(tamaño_tablero_frame, text="Tamaño del tablero:", font=("Arial", 11, "normal"))
+tamaño_tablero_label.grid(row=1, column=1, padx=1, pady=1)
+tamaño_tablero_entry = tk.Entry(tamaño_tablero_frame, justify="center", width=5, font=("Arial", 11, "normal"))
+tamaño_tablero_entry.grid(row=1, column=2, padx=1, pady=1)
 tamaño_tablero_entry.insert(0, "20")
 
 # Contenedor para las opciones de dificultad y algoritmo
@@ -671,7 +680,7 @@ opciones_frame = tk.Frame(ventana)
 opciones_frame.grid(row=4, column=1, rowspan=1, columnspan=2, padx=1, pady=1)
 
 # Opción para la dificultad
-dificultad_label = tk.Label(opciones_frame, text="Dificultad:")
+dificultad_label = tk.Label(opciones_frame, text="Dificultad:", font=("Arial", 11, "normal"))
 dificultad_label.grid(row=1, column=1, padx=1, pady=1)
 dificultad_var = tk.StringVar()
 dificultad_var.set("Medio")
@@ -679,7 +688,7 @@ dificultad_optionmenu = tk.OptionMenu(opciones_frame, dificultad_var, "Fácil   
 dificultad_optionmenu.grid(row=1, column=2, padx=1, pady=1)
 
 # Opción para el algoritmo de búsqueda
-algoritmo_label = tk.Label(opciones_frame, text="Algoritmo:")
+algoritmo_label = tk.Label(opciones_frame, text="Algoritmo:", font=("Arial", 11, "normal"))
 algoritmo_label.grid(row=2, column=1, padx=1, pady=1)
 algoritmo_var = tk.StringVar()
 algoritmo_var.set("DFS")
@@ -687,11 +696,11 @@ algoritmo_optionmenu = tk.OptionMenu(opciones_frame, algoritmo_var, "DFS", "BFS"
 algoritmo_optionmenu.grid(row=2, column=2, padx=1, pady=1)
 
 # Botón para crear un escenario
-crear_escenario_button = tk.Button(ventana, text="Nuevo escenario", command=crear_escenario)
+crear_escenario_button = tk.Button(ventana, text="Nuevo escenario", command=crear_escenario, font=("Arial", 11, "normal"))
 crear_escenario_button.grid(row=6, column=1, columnspan=2, padx=1, pady=1)
 
 # Botón para editar el tablero
-editar_button = tk.Button(ventana, text="Editar escenario", command=editar_tablero)
+editar_button = tk.Button(ventana, text="Editar escenario", command=editar_tablero, font=("Arial", 11, "normal"))
 editar_button.grid(row=7, column=1, columnspan=2, padx=1, pady=1)
 
 # Botón para ejecutar el algoritmo de búsqueda
@@ -705,19 +714,19 @@ resultados_label = tk.Label(ventana, textvariable=resultados_var, justify="left"
 resultados_label.grid(row=12, column=1, columnspan=2, padx=1, pady=1)
 
 # Resultados tamaño de la ruta
-ruta_label = tk.Label(ventana, text="Longitud de ruta:")
+ruta_label = tk.Label(ventana, text="Longitud de ruta:", font=("Arial", 10, "bold"))
 ruta_label.grid(row=27, column=1, padx=1, pady=1)
 ruta_var = tk.StringVar()
 ruta_var.set("0")
-ruta_entry = tk.Entry(ventana, state="readonly",justify="center", width=7, textvariable=ruta_var)
+ruta_entry = tk.Entry(ventana, state="readonly",justify="center", width=7, textvariable=ruta_var, font=("Arial", 11, "bold"))
 ruta_entry.grid(row=27, column=2, padx=1, pady=1)
 
 # Resultados tiempo de ejecución
-tiempo_label = tk.Label(ventana, text="Tiempo de ejecución:")
+tiempo_label = tk.Label(ventana, text="Tiempo de ejecución:", font=("Arial", 10, "bold"))
 tiempo_label.grid(row=28, column=1, padx=1, pady=1)
 tiempo_var = tk.StringVar()
 tiempo_var.set("0")
-tiempo_entry = tk.Entry(ventana, state="readonly",justify="center", width=7, textvariable=tiempo_var)
+tiempo_entry = tk.Entry(ventana, state="readonly",justify="center", width=7, textvariable=tiempo_var, font=("Arial", 11, "bold"))
 tiempo_entry.grid(row=28, column=2, padx=1, pady=1)
 
 # si existe un archivo de escenario en la carpeta, se carga (escenario.txt)

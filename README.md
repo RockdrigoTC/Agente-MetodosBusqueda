@@ -12,11 +12,11 @@
 ```
 python --version
 ```
-5. Luego, instala las bibliotecas necesarias usando pip (el administrador de paquetes de Python). Ejecuta estos comandos en la cmd:
+5. Luego, instala las bibliotecas necesarias usando pip (el administrador de paquetes de Python). Ejecuta este comandos en la cmd:
 ```
 pip install numpy
-pip install tk
 ```
+- Nota: No necesitas instalar tkinter por separado en Windows, ya que generalmente viene incluido en la instalación estándar de Python.
 
 **Linux:**
 1. La mayoría de las distribuciones de Linux ya incluyen Python. Abre una terminal y verifica si Python está instalado ejecutando:

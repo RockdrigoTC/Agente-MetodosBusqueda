@@ -61,12 +61,12 @@ python MetodosBusqueda.py
 ### Opción 2: Utilizar el Entorno "metodos-busqueda"
 
 1. Descomprime el `archivo metodos-busqueda.zip` en la raiz del proyecto.
-2. Abre una ventana de comandos (cmd o terminal) en el directorio del proyecto.
+2. Abre una ventana de comandos (Powershell o terminal) en el directorio del proyecto.
 3. Activa el entorno virtual ejecutando uno de los siguientes comandos, dependiendo de tu sistema:
 
 **Windows:**
 ```
-.\metodos-busqueda\Scripts\activate
+.\metodos-busqueda\bin\Activate.ps1
 ```
 **Linux:**
 ```

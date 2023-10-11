@@ -123,7 +123,9 @@ def distancia_manhattan(nodo1, nodo2):
 
 # Función para esperar un tiempo proporcional al tamaño del tablero
 def esperar(tablero):
-    tiempo = 0.5 / len(tablero)
+    global velocidad_var
+    factor = velocidad_var.get()
+    tiempo = 10 / factor / len(tablero)
     time.sleep(tiempo)
 
 
@@ -749,24 +751,36 @@ flecha_ruta_var.set(True)
 flecha_ruta_checkbutton = tk.Checkbutton(ruta_frame, variable=flecha_ruta_var)
 flecha_ruta_checkbutton.grid(row=2, column=2, padx=1, pady=1)
 
+# Contenedor de configuracion de velocidad
+velocidad_frame = tk.Frame(ventana)
+velocidad_frame.grid(row=6, column=1, rowspan=1, columnspan=2, padx=1, pady=0)
+
+# Opciones de velocidad
+velocidad_label = tk.Label(velocidad_frame, text="Velocidad:", font=("Arial", 11, "normal"))
+velocidad_label.grid(row=1, column=1, padx=1, pady=1)
+velocidad_var = tk.IntVar()
+velocidad_var.set(15)
+velocidad_scale = tk.Scale(velocidad_frame, variable=velocidad_var, from_=1, to=100, orient=tk.HORIZONTAL, length=100,showvalue=False)
+velocidad_scale.grid(row=1, column=2, padx=1, pady=1)
+
 
 # Botón para crear un escenario
 crear_escenario_button = tk.Button(ventana, text="Nuevo escenario", command=crear_escenario, font=("Arial", 11, "normal"))
-crear_escenario_button.grid(row=6, column=1, columnspan=2, padx=1, pady=1)
+crear_escenario_button.grid(row=9, column=1, columnspan=2, padx=1, pady=1)
 
 # Botón para editar el tablero
 editar_button = tk.Button(ventana, text="Editar escenario", command=editar_tablero, font=("Arial", 11, "normal"))
-editar_button.grid(row=7, column=1, columnspan=2, padx=1, pady=1)
+editar_button.grid(row=10, column=1, columnspan=2, padx=1, pady=1)
 
 # Botón para ejecutar el algoritmo de búsqueda
 buscar_button = tk.Button(ventana, text="Buscar", command=buscar_ruta, font=("Arial", 11, "bold"))
-buscar_button.grid(row=8, column=1, columnspan=2, padx=1, pady=1)
+buscar_button.grid(row=11, column=1, columnspan=2, padx=1, pady=1)
 
 # Resultados
 resultados_var = tk.StringVar()
 resultados_var.set("")
-resultados_label = tk.Label(ventana, textvariable=resultados_var, justify="left")
-resultados_label.grid(row=12, column=1, columnspan=2, padx=1, pady=1)
+resultados_label = tk.Label(ventana, textvariable=resultados_var, justify="left", font=("Arial", 10, "bold"))
+resultados_label.grid(row=15, column=1, columnspan=2, padx=1, pady=1)
 
 # Resultados tamaño de la ruta
 ruta_label = tk.Label(ventana, text="Longitud de ruta:", font=("Arial", 10, "bold"))

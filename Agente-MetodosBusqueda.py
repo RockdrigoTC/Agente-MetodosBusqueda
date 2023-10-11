@@ -407,6 +407,8 @@ def mostrar_tablero_en_canvas(tablero, inicio, meta, ruta=None, exito=None):
     N = len(tablero)
     ancho_celda = 600 / N
     font = (int)(200 / N)
+    gradiente_ruta = gradiente_ruta_var.get()
+    flecha_ruta = flecha_ruta_var.get()
 
 
     fila, columna = ruta[-1]
@@ -428,21 +430,54 @@ def mostrar_tablero_en_canvas(tablero, inicio, meta, ruta=None, exito=None):
             if (fila2, columna2) != inicio and (fila2, columna2) != meta:
                 canvas.create_rectangle(x3, y3, x4, y4, fill="gray", outline="black")
     elif exito:
+        # Ruta encontrada
         canvas.create_rectangle(ultimo_pintado[1]*ancho_celda, ultimo_pintado[0]*ancho_celda, 
                                 ultimo_pintado[1]*ancho_celda+ancho_celda, ultimo_pintado[0]*ancho_celda+ancho_celda, 
                                 fill="gray", outline="black")
+        ancho_flecha = (int)(60 / N)
+        if ancho_flecha < 1:
+            ancho_flecha = 1
         for fila, columna in ruta:
             if (fila, columna) != inicio and (fila, columna) != meta:
                 esperar(tablero)
                 posicion_actual = ruta.index((fila, columna))
-                color = generar_color_gradiente(posicion_actual, len(ruta))
+                if gradiente_ruta:
+                    color = generar_color_gradiente(posicion_actual, len(ruta))
+                else:
+                    color = "green"
                 x1 = columna * ancho_celda
                 y1 = fila * ancho_celda
                 x2 = x1 + ancho_celda
                 y2 = y1 + ancho_celda
                 canvas.create_rectangle(x1, y1, x2, y2, fill=color, outline="black")
-                ventana.update()
+                if flecha_ruta:
+                    # Dibujar una flecha en la dirección de la ruta
+                    if posicion_actual < len(ruta) - 1:
+                        fila_siguiente, columna_siguiente = ruta[posicion_actual + 1]
+                        x_mid = (x1 + x2) / 2
+                        y_mid = (y1 + y2) / 2
+                        if fila == fila_siguiente:
+                            if columna < columna_siguiente:
+                                # Dibuja una flecha hacia la derecha
+                                canvas.create_polygon(x2, y_mid, x_mid, y1+ancho_celda/6, x_mid, y2-ancho_celda/6, fill="black", outline="black")
+                                canvas.create_line(x2-ancho_celda/2, y_mid, x1, y_mid, fill="black", width=ancho_flecha)
+                            else:
+                                # Dibuja una flecha hacia la izquierda
+                                canvas.create_polygon(x1, y_mid, x_mid, y1+ancho_celda/6, x_mid, y2-ancho_celda/6, fill="black", outline="black")
+                                canvas.create_line(x1+ancho_celda/2, y_mid, x2, y_mid, fill="black", width=ancho_flecha)
+                        elif columna == columna_siguiente:
+                            if fila < fila_siguiente:
+                                # Dibuja una flecha hacia abajo
+                                canvas.create_polygon(x_mid, y2, x1+ancho_celda/6, y_mid, x2-ancho_celda/6, y_mid, fill="black", outline="black")
+                                canvas.create_line(x_mid, y2-ancho_celda/2, x_mid, y1, fill="black", width=ancho_flecha)
+                            else:
+                                # Dibuja una flecha hacia arriba
+                                canvas.create_polygon(x_mid, y1, x1+ancho_celda/6, y_mid, x2-ancho_celda/6, y_mid, fill="black", outline="black")
+                                canvas.create_line(x_mid, y1+ancho_celda/2, x_mid, y2, fill="black", width=ancho_flecha)
+
+            ventana.update()
     else:
+        # Ruta no encontrada
         for fila, columna in ruta:
             if (fila, columna) != inicio and (fila, columna) != meta:
                 x1 = columna * ancho_celda
@@ -694,6 +729,26 @@ algoritmo_var = tk.StringVar()
 algoritmo_var.set("DFS")
 algoritmo_optionmenu = tk.OptionMenu(opciones_frame, algoritmo_var, "DFS", "BFS", "BestF", "A*")
 algoritmo_optionmenu.grid(row=2, column=2, padx=1, pady=1)
+
+# Contenedor para las opciones de la ruta
+ruta_frame = tk.Frame(ventana)
+ruta_frame.grid(row=5, column=1, rowspan=1, columnspan=2, padx=1, pady=1)
+
+# Opciones de ruta
+gradiente_ruta_label = tk.Label(ruta_frame, text="Gradiente de ruta:", font=("Arial", 11, "normal"))
+gradiente_ruta_label.grid(row=1, column=1, padx=1, pady=1)
+gradiente_ruta_var = tk.BooleanVar()
+gradiente_ruta_var.set(True)
+gradiente_ruta_checkbutton = tk.Checkbutton(ruta_frame, variable=gradiente_ruta_var)
+gradiente_ruta_checkbutton.grid(row=1, column=2, padx=1, pady=1)
+
+flecha_ruta_label = tk.Label(ruta_frame, text="Flecha de ruta:", font=("Arial", 11, "normal"))
+flecha_ruta_label.grid(row=2, column=1, padx=1, pady=1)
+flecha_ruta_var = tk.BooleanVar()
+flecha_ruta_var.set(True)
+flecha_ruta_checkbutton = tk.Checkbutton(ruta_frame, variable=flecha_ruta_var)
+flecha_ruta_checkbutton.grid(row=2, column=2, padx=1, pady=1)
+
 
 # Botón para crear un escenario
 crear_escenario_button = tk.Button(ventana, text="Nuevo escenario", command=crear_escenario, font=("Arial", 11, "normal"))

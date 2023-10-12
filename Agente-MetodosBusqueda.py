@@ -6,9 +6,10 @@ import heapq
 import tkinter as tk
 import colorsys
 from tkinter import messagebox
+from tkinter import filedialog
 
 
-# Función para crear un tablero de N x N con obstáculos
+# Función para crear un tablero de N x N con una dificultad especificada
 def crear_tablero(N, dificultad):
     global tablero, tablero_edicion, inicio, meta
     tablero = np.zeros((N, N), dtype=int)
@@ -89,10 +90,14 @@ def obtener_vecinos(tablero, nodo):
     
     # Crear una lista para almacenar los vecinos
     vecinos = []
-    
+
     # Si el nodo no esta en la primera fila, agregar el vecino de arriba
     if fila > 0 and tablero[fila - 1][columna] != 1:
         vecinos.append((fila - 1, columna))
+
+    # Si el nodo no esta en la primera columna, agregar el vecino de la izquierda
+    if columna > 0 and tablero[fila][columna - 1] != 1:
+        vecinos.append((fila, columna - 1))
     
     # Si el nodo no esta en la última columna, agregar el vecino de la derecha
     if columna < N - 1 and tablero[fila][columna + 1] != 1:
@@ -102,10 +107,9 @@ def obtener_vecinos(tablero, nodo):
     if fila < N - 1 and tablero[fila + 1][columna] != 1:
         vecinos.append((fila + 1, columna))
     
-    # Si el nodo no esta en la primera columna, agregar el vecino de la izquierda
-    if columna > 0 and tablero[fila][columna - 1] != 1:
-        vecinos.append((fila, columna - 1))
-    
+    #Invertir lista
+    vecinos.reverse()
+
     return vecinos
 
 
@@ -357,7 +361,6 @@ def astar(tablero, inicio, meta):
     return None, time.perf_counter() - inicio_tiempo
 
 
-
 # Función para generar un gradiente entre dos colores
 def generar_color_gradiente(posicion_actual, longitud_ruta, color_inicio=(0, 50, 230), color_final=(0, 128, 0)):
     # Calcula el valor intermedio de hue entre los dos colores
@@ -578,13 +581,25 @@ def editar_tablero():
             celda.insert(0, tablero_edicion[fila][columna])
             celda.config(justify="center", fg=color, font=font)
 
+    # Contenedor para los botones de guardar y cargar tablero
+    contenedor_botones = tk.Frame(ventana_edicion)
+    contenedor_botones.grid(row=len(tablero_edicion) + 1, column=0, columnspan=len(tablero_edicion), pady=10)
+
     # Botón para guardar el tablero editado
-    guardar_button = tk.Button(ventana_edicion, text="Guardar", command=lambda: guardar_tablero(ventana_edicion))
-    guardar_button.grid(row=len(tablero_edicion) + 1, column=1, columnspan=len(tablero_edicion))
+    guardar_button = tk.Button(contenedor_botones, text="Enviar", command=lambda: actualizar_tablero(ventana_edicion), font=("Arial", 9, "bold"))
+    guardar_button.grid(row=0, column=0, padx=10)
+
+    # Botón para guardar el tablero editado en un archivo txt
+    guardar_txt_button = tk.Button(contenedor_botones, text="Guardar(txt)", command=lambda: guardar_tablero_en_txt(ventana_edicion))
+    guardar_txt_button.grid(row=0, column=1)
+
+    # Botón para cargar un tablero desde un archivo txt
+    cargar_txt_button = tk.Button(contenedor_botones, text="Cargar(txt)", command=lambda: cargar_tablero_desde_txt(ventana_edicion))
+    cargar_txt_button.grid(row=0, column=2, padx=10)
 
 
 # Función para guardar el tablero editado
-def guardar_tablero(ventana_edicion):
+def actualizar_tablero(ventana_edicion):
     global tablero, tablero_edicion, inicio, meta
 
     # Obtener el tablero editado desde la ventana de edición
@@ -615,10 +630,6 @@ def guardar_tablero(ventana_edicion):
         meta = np.where(tablero_edicion == 3)
         meta = (meta[0][0], meta[1][0])
 
-    # Eliminar los obstáculos en la posición de inicio y meta
-    tablero_edicion[tablero_edicion == 2] = 0
-    tablero_edicion[tablero_edicion == 3] = 0
-
     # Actualizar el tablero
     tablero = np.copy(tablero_edicion)
 
@@ -627,6 +638,92 @@ def guardar_tablero(ventana_edicion):
     
     # Cerrar la ventana de edición
     ventana_edicion.destroy()
+
+def guardar_tablero_en_txt(ventana_edicion):
+    global tablero, tablero_edicion, inicio, meta
+
+    # Obtener el tablero editado desde la ventana de edición
+    for fila in range(len(tablero_edicion)):
+        for columna in range(len(tablero_edicion)):
+            celda = ventana_edicion.grid_slaves(row=fila, column=columna)[0]
+            valor_celda = celda.get()
+            if not valor_celda:
+                valor_celda = "0"
+            elif valor_celda == "#":
+                valor_celda = "1"
+            elif valor_celda == "I" or valor_celda == "i":
+                valor_celda = "2"
+            elif valor_celda == "M" or valor_celda == "m":
+                valor_celda = "3"
+            else:
+                valor_celda = "0"
+            tablero_edicion[fila][columna] = valor_celda
+
+    # Convertir el tablero editado a una matriz de enteros
+    tablero_edicion = tablero_edicion.astype(int)
+
+    # Asignar la posición de inicio y meta
+    if 2 in tablero_edicion:
+        inicio = np.where(tablero_edicion == 2)
+        inicio = (inicio[0][0], inicio[1][0])
+    if 3 in tablero_edicion:
+        meta = np.where(tablero_edicion == 3)
+        meta = (meta[0][0], meta[1][0])
+
+    # Actualizar el tablero
+    tablero = np.copy(tablero_edicion)
+
+    # Mostrar el tablero en el Canvas
+    mostrar_tablero_en_canvas_mapa(tablero, inicio, meta)
+    
+    # Guardar el tablero en un archivo txt en la carpeta "tableros"
+    dir_path_tableros = dir_path+"/tableros"
+    if not os.path.exists(dir_path_tableros):
+        os.makedirs(dir_path_tableros)
+    np.savetxt(f"{dir_path_tableros}/tablero_{len(tablero)}X{len(tablero)}-({inicio[1]},{inicio[0]})({meta[1]},{meta[0]}).txt", tablero, fmt="%d")
+
+def cargar_tablero_desde_txt(ventana_edicion):
+    global tablero, tablero_edicion, inicio, meta
+    dir_path_tableros = dir_path+"/tableros"
+    if not os.path.exists(dir_path_tableros):
+        os.makedirs(dir_path_tableros)
+    # ventana para seleccionar el archivo de tablero
+    archivo_tablero = filedialog.askopenfilename(initialdir=dir_path_tableros, title="Seleccionar archivo de tablero", filetypes=(("txt files", "*.txt"), ("all files", "*.*")))
+    if archivo_tablero:
+        # Si el archivo tiene caracteres no numericos, se muestra un mensaje de error
+        try:
+            # Obtener el tablero desde el archivo txt
+            tablero = np.loadtxt(archivo_tablero).astype(int)
+            # si inicio y meta no estan en el tablero, se muestra un mensaje de error
+            if 2 not in tablero or 3 not in tablero:
+                messagebox.showerror("Error", "El archivo seleccionado no es un tablero válido  (no tiene inicio o meta).")
+                ventana_edicion.destroy()
+                return None
+            inicio = np.where(tablero == 2)
+            inicio = (inicio[0][0], inicio[1][0])
+            meta = np.where(tablero == 3)
+            meta = (meta[0][0], meta[1][0])
+            tablero[tablero == 2] = 0
+            tablero[tablero == 3] = 0
+            # Donde hay valores diferentes de 0 y 1, se cambiaran por 0
+            tablero[tablero > 1] = 0
+            tablero[tablero < 0] = 0
+
+            # Actualizar el tablero
+            tablero_edicion = np.copy(tablero)
+
+            ventana_edicion.destroy()
+
+            # Mostrar el tablero en el Canvas
+            mostrar_tablero_en_canvas_mapa(tablero, inicio, meta)
+
+        except ValueError:
+            messagebox.showerror("Error", "El archivo seleccionado no es un tablero válido.")
+            ventana_edicion.destroy()
+            return None
+    
+
+        
 
 
 # Función para ejecutar los algoritmos de búsqueda
@@ -684,6 +781,9 @@ trayectoria = []
 inicio = None
 meta = None
 ultimo_pintado = None
+
+#obtener la ubicacion del archivo
+dir_path = os.path.dirname(os.path.realpath(__file__))
 
 # Ventana principal de la interfaz gráfica
 ventana = tk.Tk()
@@ -798,20 +898,8 @@ tiempo_var.set("0")
 tiempo_entry = tk.Entry(ventana, state="readonly",justify="center", width=7, textvariable=tiempo_var, font=("Arial", 11, "bold"))
 tiempo_entry.grid(row=28, column=2, padx=1, pady=1)
 
-# si existe un archivo de escenario en la carpeta, se carga (escenario.txt)
-if os.path.exists("escenario.txt"):
-    tablero = np.loadtxt("escenario.txt").astype(int)
-    inicio = np.where(tablero == 2)
-    inicio = (inicio[0][0], inicio[1][0])
-    meta = np.where(tablero == 3)
-    meta = (meta[0][0], meta[1][0])
-    tablero[tablero == 2] = 0
-    tablero[tablero == 3] = 0
-    tablero_edicion = np.copy(tablero)
-    mostrar_tablero_en_canvas_mapa(tablero, inicio, meta)
-else:
-    # Crear un tablero inicial
-    crear_tablero(20, MEDIO)
-    mostrar_tablero_en_canvas_mapa(tablero, inicio, meta)
+# Crear un tablero inicial
+crear_tablero(20, MEDIO)
+mostrar_tablero_en_canvas_mapa(tablero, inicio, meta)
 
 ventana.mainloop()

@@ -382,6 +382,7 @@ def mostrar_tablero_en_canvas_mapa(tablero, inicio, meta, ruta=None, exito=None)
     N = len(tablero)
     ancho_celda = 600 / N
     font = (int)(200 / N)
+    borde = (int)(len(tablero)) / 10
     
     for fila in range(N):
         for columna in range(N):
@@ -391,10 +392,10 @@ def mostrar_tablero_en_canvas_mapa(tablero, inicio, meta, ruta=None, exito=None)
             y2 = y1 + ancho_celda
             
             if (fila, columna) == inicio:
-                canvas.create_rectangle(x1, y1, x2, y2, fill="blue", outline="blue", width=3)
+                canvas.create_rectangle(x1, y1, x2, y2, fill="blue", outline="blue", width=borde)
                 canvas.create_text(x1 + ancho_celda / 2, y1 + ancho_celda / 2, text="I", font=("Arial", font, "bold"))
             elif (fila, columna) == meta:
-                canvas.create_rectangle(x1, y1, x2, y2, fill="green", outline="green", width=3)
+                canvas.create_rectangle(x1, y1, x2, y2, fill="green", outline="green", width=borde)
                 canvas.create_text(x1 + ancho_celda / 2, y1 + ancho_celda / 2, text="M", font=("Arial", font, "bold"))
             elif tablero[fila][columna] == 1:
                 canvas.create_rectangle(x1, y1, x2, y2, fill="black", outline="black")
@@ -531,7 +532,7 @@ def editar_tablero():
 
     # Mostrar un mensaje si el tablero es demasiado grande
     if len(tablero) > 30:
-        messagebox.showinfo("Editar Tablero", "El tablero es demasiado grande para editarlo.")
+        messagebox.showinfo("Editar Tablero", "El tablero es demasiado grande para editarlo.\nMáximo: 30x30")
         return None
 
     if tablero_edicion is None:
@@ -639,6 +640,8 @@ def actualizar_tablero(ventana_edicion):
     # Cerrar la ventana de edición
     ventana_edicion.destroy()
 
+
+# Función para guardar el tablero editado en un archivo txt
 def guardar_tablero_en_txt(ventana_edicion):
     global tablero, tablero_edicion, inicio, meta
 
@@ -682,6 +685,8 @@ def guardar_tablero_en_txt(ventana_edicion):
         os.makedirs(dir_path_tableros)
     np.savetxt(f"{dir_path_tableros}/tablero_{len(tablero)}X{len(tablero)}-({inicio[1]},{inicio[0]})({meta[1]},{meta[0]}).txt", tablero, fmt="%d")
 
+
+# Función para cargar un tablero desde un archivo txt
 def cargar_tablero_desde_txt(ventana_edicion):
     global tablero, tablero_edicion, inicio, meta
     dir_path_tableros = dir_path+"/tableros"
@@ -722,9 +727,6 @@ def cargar_tablero_desde_txt(ventana_edicion):
             ventana_edicion.destroy()
             return None
     
-
-        
-
 
 # Función para ejecutar los algoritmos de búsqueda
 def buscar_ruta():
@@ -837,14 +839,14 @@ ruta_frame = tk.Frame(ventana)
 ruta_frame.grid(row=5, column=1, rowspan=1, columnspan=2, padx=1, pady=1)
 
 # Opciones de ruta
-gradiente_ruta_label = tk.Label(ruta_frame, text="Gradiente de ruta:", font=("Arial", 11, "normal"))
+gradiente_ruta_label = tk.Label(ruta_frame, text="Gradiente en ruta:", font=("Arial", 11, "normal"))
 gradiente_ruta_label.grid(row=1, column=1, padx=1, pady=1)
 gradiente_ruta_var = tk.BooleanVar()
 gradiente_ruta_var.set(True)
 gradiente_ruta_checkbutton = tk.Checkbutton(ruta_frame, variable=gradiente_ruta_var)
 gradiente_ruta_checkbutton.grid(row=1, column=2, padx=1, pady=1)
 
-flecha_ruta_label = tk.Label(ruta_frame, text="Flecha de ruta:", font=("Arial", 11, "normal"))
+flecha_ruta_label = tk.Label(ruta_frame, text="Flechas en ruta:", font=("Arial", 11, "normal"))
 flecha_ruta_label.grid(row=2, column=1, padx=1, pady=1)
 flecha_ruta_var = tk.BooleanVar()
 flecha_ruta_var.set(True)

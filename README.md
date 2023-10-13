@@ -59,6 +59,8 @@ pip install numpy
 python MetodosBusqueda.py
 ```
 
+![Captura del programa en ejecucion](capturas/captura-1.jpg)
+
 ## Uso
 
 **Crear un escenario:** Haz clic en el botón "Nuevo escenario" para generar un nuevo tablero con un tamaño especificado y una dificultad (Fácil, Medio o Difícil). Esto creará un tablero con obstáculos, una posición de inicio y una meta.

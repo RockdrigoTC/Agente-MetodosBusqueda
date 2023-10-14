@@ -586,11 +586,11 @@ def abrir_ventana_edicion():
         global tablero, inicio, meta
         # Comprobar que hay un inicio y una meta
         if 2 not in copy_tablero or 3 not in copy_tablero:
-            messagebox.showerror("Error", "El escenario debe tener un inicio y una meta.", parent=ventana_edicion)
+            messagebox.showerror("Editar Tablero", "El escenario debe tener un inicio y una meta.", parent=ventana_edicion)
             return None
         # comprobar que no haya mas de un inicio o una meta
         if np.count_nonzero(copy_tablero == 2) > 1 or np.count_nonzero(copy_tablero == 3) > 1:
-            messagebox.showerror("Error", "El escenario debe tener un solo inicio y meta.", parent=ventana_edicion)
+            messagebox.showerror("Editar Tablero", "El escenario debe tener un solo inicio y meta.", parent=ventana_edicion)
             return None
         tablero = np.copy(copy_tablero) 
         mostrar_tablero_en_canvas_mapa(tablero, inicio, meta)
@@ -644,11 +644,11 @@ def guardar_tablero_en_txt(ventana_edicion, copy_tablero):
     global tablero, tablero_edicion, inicio, meta
 
     if 2 not in copy_tablero or 3 not in copy_tablero:
-            messagebox.showerror("Error", "El escenario debe tener un inicio y una meta.", parent=ventana_edicion)
+            messagebox.showerror("Guardado de escenario", "El escenario debe tener un inicio y una meta.", parent=ventana_edicion)
             return None
     # comprobar que no haya mas de un inicio o una meta
     if np.count_nonzero(copy_tablero == 2) > 1 or np.count_nonzero(copy_tablero == 3) > 1:
-        messagebox.showerror("Error", "El escenario debe tener un solo inicio y meta.", parent=ventana_edicion)
+        messagebox.showerror("Guardado de escenario", "El escenario debe tener un solo inicio y meta.", parent=ventana_edicion)
         return None
     
     
@@ -657,6 +657,8 @@ def guardar_tablero_en_txt(ventana_edicion, copy_tablero):
     if not os.path.exists(dir_path_tableros):
         os.makedirs(dir_path_tableros)
     np.savetxt(f"{dir_path_tableros}/tablero_{len(tablero)}X{len(tablero)}-({inicio[1]},{inicio[0]})({meta[1]},{meta[0]}).txt", copy_tablero, fmt="%d")
+
+    messagebox.showinfo("Guardado exitoso", "El escenario se guardó correctamente.", parent=ventana_edicion)
 
 
 # Función para cargar un tablero desde un archivo txt
@@ -674,15 +676,15 @@ def cargar_tablero_desde_txt(ventana_edicion):
             tablero = np.loadtxt(archivo_tablero).astype(int)
             # si inicio y meta no estan en el tablero, se muestra un mensaje de error
             if 2 not in tablero or 3 not in tablero:
-                messagebox.showerror("Error", "El archivo seleccionado no es un tablero válido  (no tiene inicio o meta).", parent=ventana_edicion)
+                messagebox.showerror("Carga de escenario", "El archivo seleccionado no es un tablero válido  (no tiene inicio o meta).", parent=ventana_edicion)
                 return None
             # si hay mas de un inicio o una meta, se muestra un mensaje de error
             if np.count_nonzero(tablero == 2) > 1 or np.count_nonzero(tablero == 3) > 1:
-                messagebox.showerror("Error", "El archivo seleccionado no es un tablero válido (tiene mas de un inicio o una meta).", parent=ventana_edicion)
+                messagebox.showerror("Carga de escenario", "El archivo seleccionado no es un tablero válido (tiene mas de un inicio o una meta).", parent=ventana_edicion)
                 return None
             # si las filas y columnas del tablero no son iguales, se muestra un mensaje de error
             if tablero.shape[0] != tablero.shape[1]:
-                messagebox.showerror("Error", "El archivo seleccionado no es un tablero válido (no es cuadrado).", parent=ventana_edicion)
+                messagebox.showerror("Carga de escenario", "El archivo seleccionado no es un tablero válido (no es cuadrado).", parent=ventana_edicion)
                 return None
             inicio = np.where(tablero == 2)
             inicio = (inicio[0][0], inicio[1][0])
@@ -698,7 +700,7 @@ def cargar_tablero_desde_txt(ventana_edicion):
             mostrar_tablero_en_canvas_mapa(tablero, inicio, meta)
 
         except ValueError:
-            messagebox.showerror("Error", "El archivo seleccionado no es un tablero válido (tiene caracteres no numéricos).", parent=ventana_edicion)
+            messagebox.showerror("Carga de escenario", "El archivo seleccionado no es un tablero válido (tiene caracteres no numéricos).", parent=ventana_edicion)
             return None
     
 

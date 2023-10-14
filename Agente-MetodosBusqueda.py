@@ -29,11 +29,14 @@ def crear_tablero(N, dificultad):
         separacion = int(N / 1.25)
     
     # Establecer la posición de inicio y meta aleatoriamente asegurando que esten alejados al menos la mitad del tablero
-    inicio = (random.randint(0, N - 1), random.randint(0, N - 1))   
-    meta = (random.randint(0, N - 1), random.randint(0, N - 1))
-    while distancia_manhattan(inicio, meta) < separacion:
+    while True:
         inicio = (random.randint(0, N - 1), random.randint(0, N - 1))
         meta = (random.randint(0, N - 1), random.randint(0, N - 1))
+        if distancia_manhattan(inicio, meta) > separacion:
+            break
+
+    tablero[inicio] = 2
+    tablero[meta] = 3
 
     # Colocar obstáculos según la dificultad y asegurando que no esten en la posición de inicio y meta
     for i in range(num_obstaculos):
@@ -526,72 +529,109 @@ def crear_escenario():
     mostrar_tablero_en_canvas_mapa(tablero, inicio, meta)    
 
 
-# Función para editar el tablero
-def editar_tablero():
-    global tablero, tablero_edicion, inicio, meta
+def abrir_ventana_edicion():
+    global tablero, inicio, meta
 
     # Mostrar un mensaje si el tablero es demasiado grande
-    if len(tablero) > 30:
-        messagebox.showinfo("Editar Tablero", "El tablero es demasiado grande para editarlo.\nMáximo: 30x30")
+    if len(tablero) > 20:
+        messagebox.showinfo("Editar Tablero", "El tablero es demasiado grande para editarlo.\nMáximo: 20x20", parent=ventana)
         return None
 
-    if tablero_edicion is None:
-        tablero_edicion = np.ndarray((20, 20), dtype=str)
-        tablero_edicion.fill("0")
-
-    tablero_edicion = tablero_edicion.astype(str)
-    tablero_edicion[tablero_edicion == "0"] = ""
-    tablero_edicion[tablero_edicion == "1"] = "#"
-
-    if inicio is not None:
-        tablero_edicion[inicio] = "I"
-    if meta is not None:
-        tablero_edicion[meta] = "M"
-
-    # Crear una ventana para editar el tablero
     ventana_edicion = tk.Toplevel(ventana)
-    ventana_edicion.title("Editar Tablero")
+    ventana_edicion.title("Edición de Escenario")
     ventana_edicion.resizable(False, False)
+    ventana_edicion.grab_set()
+    ventana_edicion.transient(ventana)
 
-    # Función para validar la entrada y limitarla a un solo carácter
-    def validar_entrada(cadena):
-        if len(cadena) > 1:
-            return False
-        return True
 
-    validar_entrada_fn = ventana_edicion.register(validar_entrada)
+    # Función para cambiar el color de una celda en la ventana de edición
+    def cambiar_color(fila, columna):
+        global inicio, meta
+        color = color_var.get()
+        celdas[fila][columna].config(bg=color)
+        if color == "white":
+            copy_tablero[fila][columna] = 0  # Celda vacía
+        elif color == "black":
+            copy_tablero[fila][columna] = 1  # Celda obstáculo
+        elif color == "blue":
+            copy_tablero[fila][columna] = 2
+            inicio = (fila, columna)
+        elif color == "green":
+            copy_tablero[fila][columna] = 3
+            meta = (fila, columna)
 
-    # Obtener el ancho de las celdas
-    ancho_casilla = (int)(0.2 * len(tablero_edicion)) 
 
-    # Cargar el tablero en la ventana de edición
-    for fila in range(len(tablero_edicion)):
-        for columna in range(len(tablero_edicion)):
-            valor = tablero_edicion[fila][columna]
-            color = "black"
-            if valor == "I":
+    filas = tablero.shape[0]
+    columnas = tablero.shape[1]
+    celdas = []
+    copy_tablero = np.copy(tablero)
+
+    for fila in range(filas):
+        fila_celdas = []
+        for columna in range(columnas):
+            if tablero[fila][columna] == 0:
+                color = "white"
+            elif tablero[fila][columna] == 1:
+                color = "black"
+            elif tablero[fila][columna] == 2:
                 color = "blue"
-                font = ("Arial", 11, "bold")
-            elif valor == "M":
+            elif tablero[fila][columna] == 3:
                 color = "green"
-                font = ("Arial", 11, "bold")
-            else:
-                font = ("Arial", 10)
-            celda = tk.Entry(ventana_edicion, width=ancho_casilla, validate="key", validatecommand=(validar_entrada_fn, "%P"))
-            celda.grid(row=fila, column=columna)
-            celda.insert(0, tablero_edicion[fila][columna])
-            celda.config(justify="center", fg=color, font=font)
+            boton = tk.Button(ventana_edicion, bg=color, width=2, height=1, command=lambda f=fila, c=columna: cambiar_color(f, c))
+            boton.grid(row=fila, column=columna)
+            fila_celdas.append(boton)
+        celdas.append(fila_celdas)
 
-    # Contenedor para los botones de guardar y cargar tablero
+    def guardar_escenario():
+        global tablero, inicio, meta
+        # Comprobar que hay un inicio y una meta
+        if 2 not in copy_tablero or 3 not in copy_tablero:
+            messagebox.showerror("Error", "El escenario debe tener un inicio y una meta.", parent=ventana_edicion)
+            return None
+        # comprobar que no haya mas de un inicio o una meta
+        if np.count_nonzero(copy_tablero == 2) > 1 or np.count_nonzero(copy_tablero == 3) > 1:
+            messagebox.showerror("Error", "El escenario debe tener un solo inicio y meta.", parent=ventana_edicion)
+            return None
+        tablero = np.copy(copy_tablero) 
+        mostrar_tablero_en_canvas_mapa(tablero, inicio, meta)
+
+        ventana_edicion.destroy()
+
+    
+    # Contenedor para los botones de color
+    contenedor_selector_color = tk.Frame(ventana_edicion)
+    contenedor_selector_color.grid(row=len(tablero) + 1, column=0, columnspan=len(tablero), pady=10)
+
+    # Variable para rastrear la selección
+    color_var = tk.StringVar()
+    color_var.set("white")
+
+    # Crear los botones de radio para los colores
+    colores = ["blue", "green", "black", "white"]
+    celda = ["Inicio", "Meta", "Obstáculo", "Vacío"]
+
+
+    def guardar_color_seleccionado(color):
+        color_var.set(color)
+
+    for color in colores:
+        radiobutton = tk.Radiobutton(contenedor_selector_color, 
+                                     text=celda[colores.index(color)], 
+                                     variable=color_var, value=color, 
+                                     command=lambda color=color: guardar_color_seleccionado(color),
+                                     font=("Arial", 9, "bold"))
+        radiobutton.grid(row=0, column=colores.index(color), padx=10)
+
+    # Contenedor para el botón de carga y guardado
     contenedor_botones = tk.Frame(ventana_edicion)
-    contenedor_botones.grid(row=len(tablero_edicion) + 1, column=0, columnspan=len(tablero_edicion), pady=10)
+    contenedor_botones.grid(row=len(tablero) + 2, column=0, columnspan=len(tablero), pady=10)
 
     # Botón para guardar el tablero editado
-    guardar_button = tk.Button(contenedor_botones, text="Enviar", command=lambda: actualizar_tablero(ventana_edicion), font=("Arial", 9, "bold"))
+    guardar_button = tk.Button(contenedor_botones, text="Enviar", command=guardar_escenario, font=("Arial", 9, "bold"))
     guardar_button.grid(row=0, column=0, padx=10)
 
     # Botón para guardar el tablero editado en un archivo txt
-    guardar_txt_button = tk.Button(contenedor_botones, text="Guardar(txt)", command=lambda: guardar_tablero_en_txt(ventana_edicion))
+    guardar_txt_button = tk.Button(contenedor_botones, text="Guardar(txt)", command=lambda: guardar_tablero_en_txt(ventana_edicion, copy_tablero))
     guardar_txt_button.grid(row=0, column=1)
 
     # Botón para cargar un tablero desde un archivo txt
@@ -599,91 +639,24 @@ def editar_tablero():
     cargar_txt_button.grid(row=0, column=2, padx=10)
 
 
-# Función para guardar el tablero editado
-def actualizar_tablero(ventana_edicion):
-    global tablero, tablero_edicion, inicio, meta
-
-    # Obtener el tablero editado desde la ventana de edición
-    for fila in range(len(tablero_edicion)):
-        for columna in range(len(tablero_edicion)):
-            celda = ventana_edicion.grid_slaves(row=fila, column=columna)[0]
-            valor_celda = celda.get()
-            if not valor_celda:
-                valor_celda = "0"
-            elif valor_celda == "#":
-                valor_celda = "1"
-            elif valor_celda == "I" or valor_celda == "i":
-                valor_celda = "2"
-            elif valor_celda == "M" or valor_celda == "m":
-                valor_celda = "3"
-            else:
-                valor_celda = "0"
-            tablero_edicion[fila][columna] = valor_celda
-
-    # Convertir el tablero editado a una matriz de enteros
-    tablero_edicion = tablero_edicion.astype(int)
-
-    # Asignar la posición de inicio y meta
-    if 2 in tablero_edicion:
-        inicio = np.where(tablero_edicion == 2)
-        inicio = (inicio[0][0], inicio[1][0])
-    if 3 in tablero_edicion:
-        meta = np.where(tablero_edicion == 3)
-        meta = (meta[0][0], meta[1][0])
-
-    # Actualizar el tablero
-    tablero = np.copy(tablero_edicion)
-
-    # Mostrar el tablero en el Canvas
-    mostrar_tablero_en_canvas_mapa(tablero, inicio, meta)
-    
-    # Cerrar la ventana de edición
-    ventana_edicion.destroy()
-
-
 # Función para guardar el tablero editado en un archivo txt
-def guardar_tablero_en_txt(ventana_edicion):
+def guardar_tablero_en_txt(ventana_edicion, copy_tablero):
     global tablero, tablero_edicion, inicio, meta
 
-    # Obtener el tablero editado desde la ventana de edición
-    for fila in range(len(tablero_edicion)):
-        for columna in range(len(tablero_edicion)):
-            celda = ventana_edicion.grid_slaves(row=fila, column=columna)[0]
-            valor_celda = celda.get()
-            if not valor_celda:
-                valor_celda = "0"
-            elif valor_celda == "#":
-                valor_celda = "1"
-            elif valor_celda == "I" or valor_celda == "i":
-                valor_celda = "2"
-            elif valor_celda == "M" or valor_celda == "m":
-                valor_celda = "3"
-            else:
-                valor_celda = "0"
-            tablero_edicion[fila][columna] = valor_celda
-
-    # Convertir el tablero editado a una matriz de enteros
-    tablero_edicion = tablero_edicion.astype(int)
-
-    # Asignar la posición de inicio y meta
-    if 2 in tablero_edicion:
-        inicio = np.where(tablero_edicion == 2)
-        inicio = (inicio[0][0], inicio[1][0])
-    if 3 in tablero_edicion:
-        meta = np.where(tablero_edicion == 3)
-        meta = (meta[0][0], meta[1][0])
-
-    # Actualizar el tablero
-    tablero = np.copy(tablero_edicion)
-
-    # Mostrar el tablero en el Canvas
-    mostrar_tablero_en_canvas_mapa(tablero, inicio, meta)
+    if 2 not in copy_tablero or 3 not in copy_tablero:
+            messagebox.showerror("Error", "El escenario debe tener un inicio y una meta.", parent=ventana_edicion)
+            return None
+    # comprobar que no haya mas de un inicio o una meta
+    if np.count_nonzero(copy_tablero == 2) > 1 or np.count_nonzero(copy_tablero == 3) > 1:
+        messagebox.showerror("Error", "El escenario debe tener un solo inicio y meta.", parent=ventana_edicion)
+        return None
+    
     
     # Guardar el tablero en un archivo txt en la carpeta "tableros"
     dir_path_tableros = dir_path+"/tableros"
     if not os.path.exists(dir_path_tableros):
         os.makedirs(dir_path_tableros)
-    np.savetxt(f"{dir_path_tableros}/tablero_{len(tablero)}X{len(tablero)}-({inicio[1]},{inicio[0]})({meta[1]},{meta[0]}).txt", tablero, fmt="%d")
+    np.savetxt(f"{dir_path_tableros}/tablero_{len(tablero)}X{len(tablero)}-({inicio[1]},{inicio[0]})({meta[1]},{meta[0]}).txt", copy_tablero, fmt="%d")
 
 
 # Función para cargar un tablero desde un archivo txt
@@ -701,21 +674,23 @@ def cargar_tablero_desde_txt(ventana_edicion):
             tablero = np.loadtxt(archivo_tablero).astype(int)
             # si inicio y meta no estan en el tablero, se muestra un mensaje de error
             if 2 not in tablero or 3 not in tablero:
-                messagebox.showerror("Error", "El archivo seleccionado no es un tablero válido  (no tiene inicio o meta).")
-                ventana_edicion.destroy()
+                messagebox.showerror("Error", "El archivo seleccionado no es un tablero válido  (no tiene inicio o meta).", parent=ventana_edicion)
+                return None
+            # si hay mas de un inicio o una meta, se muestra un mensaje de error
+            if np.count_nonzero(tablero == 2) > 1 or np.count_nonzero(tablero == 3) > 1:
+                messagebox.showerror("Error", "El archivo seleccionado no es un tablero válido (tiene mas de un inicio o una meta).", parent=ventana_edicion)
+                return None
+            # si las filas y columnas del tablero no son iguales, se muestra un mensaje de error
+            if tablero.shape[0] != tablero.shape[1]:
+                messagebox.showerror("Error", "El archivo seleccionado no es un tablero válido (no es cuadrado).", parent=ventana_edicion)
                 return None
             inicio = np.where(tablero == 2)
             inicio = (inicio[0][0], inicio[1][0])
             meta = np.where(tablero == 3)
             meta = (meta[0][0], meta[1][0])
-            tablero[tablero == 2] = 0
-            tablero[tablero == 3] = 0
             # Donde hay valores diferentes de 0 y 1, se cambiaran por 0
-            tablero[tablero > 1] = 0
+            tablero[tablero > 3] = 0
             tablero[tablero < 0] = 0
-
-            # Actualizar el tablero
-            tablero_edicion = np.copy(tablero)
 
             ventana_edicion.destroy()
 
@@ -723,8 +698,7 @@ def cargar_tablero_desde_txt(ventana_edicion):
             mostrar_tablero_en_canvas_mapa(tablero, inicio, meta)
 
         except ValueError:
-            messagebox.showerror("Error", "El archivo seleccionado no es un tablero válido.")
-            ventana_edicion.destroy()
+            messagebox.showerror("Error", "El archivo seleccionado no es un tablero válido (tiene caracteres no numéricos).", parent=ventana_edicion)
             return None
     
 
@@ -871,7 +845,7 @@ crear_escenario_button = tk.Button(ventana, text="Nuevo escenario", command=crea
 crear_escenario_button.grid(row=9, column=1, columnspan=2, padx=1, pady=1)
 
 # Botón para editar el tablero
-editar_button = tk.Button(ventana, text="Editar escenario", command=editar_tablero, font=("Arial", 11, "normal"))
+editar_button = tk.Button(ventana, text="Editar escenario", command=abrir_ventana_edicion, font=("Arial", 11, "normal"))
 editar_button.grid(row=10, column=1, columnspan=2, padx=1, pady=1)
 
 # Botón para ejecutar el algoritmo de búsqueda
@@ -905,3 +879,4 @@ crear_tablero(20, MEDIO)
 mostrar_tablero_en_canvas_mapa(tablero, inicio, meta)
 
 ventana.mainloop()
+

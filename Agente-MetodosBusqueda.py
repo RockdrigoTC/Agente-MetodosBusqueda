@@ -49,7 +49,7 @@ def crear_tablero(N, dificultad):
     for fila in range(N):
         for columna in range(N):
             vecinos = obtener_vecinos(tablero, (fila, columna))
-            if len(vecinos) == 0:
+            if len(vecinos) == 0 and tablero[fila][columna] == 0:
                 tablero[fila][columna] = 1
 
     tablero_edicion = np.copy(tablero)
@@ -314,7 +314,7 @@ def astar(tablero, inicio, meta):
     # Diccionario para almacenar los costos acumulativos
     costos_acumulativos = {inicio: 0}
     
-    # Diccionario para almacenar el padre de cada nodo, inicializado con el nodo inicial
+    # Diccionario para almacenar el padre de cada nodo
     padres = {inicio: None}
     
     # Mientras la cola de prioridad no esté vacía
@@ -537,11 +537,13 @@ def abrir_ventana_edicion():
         messagebox.showinfo("Editar Tablero", "El tablero es demasiado grande para editarlo.\nMáximo: 20x20", parent=ventana)
         return None
 
+    # Crear una ventana para editar el tablero, al centro de la ventana principal
     ventana_edicion = tk.Toplevel(ventana)
     ventana_edicion.title("Edición de Escenario")
     ventana_edicion.resizable(False, False)
     ventana_edicion.grab_set()
     ventana_edicion.transient(ventana)
+    ventana_edicion.geometry("+%d+%d" % (ventana.winfo_rootx() + 100, ventana.winfo_rooty()-50))
 
 
     # Función para cambiar el color de una celda en la ventana de edición
@@ -604,7 +606,10 @@ def abrir_ventana_edicion():
 
         ventana_edicion.destroy()
 
-    
+
+    color_seleccionado = tk.StringVar()
+    color_seleccionado.set("white")
+
     # Contenedor para los botones de color
     contenedor_selector_color = tk.Frame(ventana_edicion)
     contenedor_selector_color.grid(row=len(tablero) + 1, column=0, columnspan=len(tablero), pady=10)
@@ -619,11 +624,13 @@ def abrir_ventana_edicion():
         color_var.set(color)
 
     for color in colores:
-        radiobutton = tk.Radiobutton(contenedor_selector_color, 
-                                     text=celda[colores.index(color)],
-                                     variable=color_var, value=color,
-                                     command=lambda color=color: guardar_color_seleccionado(color),
-                                     font=("Arial", 9, "bold"))
+        radiobutton = tk.Radiobutton(
+            contenedor_selector_color, 
+            text=celda[colores.index(color)],
+            variable=color_var, value=color,
+            command=lambda color=color: guardar_color_seleccionado(color),
+            borderwidth=2, relief="ridge", bg="gray", fg=color, selectcolor="gray", activeforeground=color, 
+            font=("Arial", 10, "bold"))
         radiobutton.grid(row=0, column=colores.index(color), padx=10)
 
     # Contenedor para el botón de carga y guardado

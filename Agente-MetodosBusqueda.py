@@ -560,7 +560,7 @@ def abrir_ventana_edicion():
             copy_tablero[fila][columna] = 3
             meta = (fila, columna)
 
-
+    
     filas = tablero.shape[0]
     columnas = tablero.shape[1]
     celdas = []
@@ -581,6 +581,13 @@ def abrir_ventana_edicion():
             boton.grid(row=fila, column=columna)
             fila_celdas.append(boton)
         celdas.append(fila_celdas)
+
+    # Función para limpiar el tablero
+    def limpiar_tablero():
+        for fila in range(filas):
+            for columna in range(columnas):
+                celdas[fila][columna].config(bg="white")
+                copy_tablero[fila][columna] = 0
 
     def guardar_escenario():
         global tablero, inicio, meta
@@ -605,19 +612,16 @@ def abrir_ventana_edicion():
     # Variable para rastrear la selección
     color_var = tk.StringVar()
     color_var.set("white")
-
-    # Crear los botones de radio para los colores
     colores = ["blue", "green", "black", "white"]
     celda = ["Inicio", "Meta", "Obstáculo", "Vacío"]
-
 
     def guardar_color_seleccionado(color):
         color_var.set(color)
 
     for color in colores:
         radiobutton = tk.Radiobutton(contenedor_selector_color, 
-                                     text=celda[colores.index(color)], 
-                                     variable=color_var, value=color, 
+                                     text=celda[colores.index(color)],
+                                     variable=color_var, value=color,
                                      command=lambda color=color: guardar_color_seleccionado(color),
                                      font=("Arial", 9, "bold"))
         radiobutton.grid(row=0, column=colores.index(color), padx=10)
@@ -626,17 +630,21 @@ def abrir_ventana_edicion():
     contenedor_botones = tk.Frame(ventana_edicion)
     contenedor_botones.grid(row=len(tablero) + 2, column=0, columnspan=len(tablero), pady=10)
 
+    # Botón para limpiar el tablero
+    limpiar_button = tk.Button(contenedor_botones, text="Limpiar", command=lambda: limpiar_tablero())
+    limpiar_button.grid(row=0, column=1, padx=5)
+
     # Botón para guardar el tablero editado
-    guardar_button = tk.Button(contenedor_botones, text="Enviar", command=guardar_escenario, font=("Arial", 9, "bold"))
-    guardar_button.grid(row=0, column=0, padx=10)
+    guardar_button = tk.Button(contenedor_botones, text="Terminar", command=guardar_escenario, font=("Arial", 9, "bold"))
+    guardar_button.grid(row=0, column=0, padx=5)
 
     # Botón para guardar el tablero editado en un archivo txt
     guardar_txt_button = tk.Button(contenedor_botones, text="Guardar(txt)", command=lambda: guardar_tablero_en_txt(ventana_edicion, copy_tablero))
-    guardar_txt_button.grid(row=0, column=1)
+    guardar_txt_button.grid(row=0, column=2, padx=5)
 
     # Botón para cargar un tablero desde un archivo txt
     cargar_txt_button = tk.Button(contenedor_botones, text="Cargar(txt)", command=lambda: cargar_tablero_desde_txt(ventana_edicion))
-    cargar_txt_button.grid(row=0, column=2, padx=10)
+    cargar_txt_button.grid(row=0, column=3, padx=5)
 
 
 # Función para guardar el tablero editado en un archivo txt

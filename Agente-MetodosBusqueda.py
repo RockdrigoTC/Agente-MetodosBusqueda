@@ -804,24 +804,45 @@ algoritmo_var.set("DFS")
 algoritmo_optionmenu = tk.OptionMenu(opciones_frame, algoritmo_var, "DFS", "BFS", "BestF", "A*")
 algoritmo_optionmenu.grid(row=2, column=2, padx=1, pady=1)
 
-# Contenedor para las opciones de la ruta
-ruta_frame = tk.Frame(ventana)
-ruta_frame.grid(row=7, column=1, rowspan=1, columnspan=2, padx=1, pady=1)
+# # Contenedor para las opciones de la ruta
+# ruta_frame = tk.Frame(ventana)
+# ruta_frame.grid(row=7, column=1, rowspan=1, columnspan=2, padx=1, pady=1)
+
+# # Opciones de ruta
+# gradiente_ruta_label = tk.Label(ruta_frame, text="Gradiente en ruta:", font=("Arial", 11, "normal"))
+# gradiente_ruta_label.grid(row=1, column=1, padx=1, pady=1)
+# gradiente_ruta_var = tk.BooleanVar()
+# gradiente_ruta_var.set(True)
+# gradiente_ruta_checkbutton = tk.Checkbutton(ruta_frame, variable=gradiente_ruta_var)
+# gradiente_ruta_checkbutton.grid(row=1, column=2, padx=1, pady=1)
+
+# flecha_ruta_label = tk.Label(ruta_frame, text="Flechas en ruta:", font=("Arial", 11, "normal"))
+# flecha_ruta_label.grid(row=2, column=1, padx=1, pady=1)
+# flecha_ruta_var = tk.BooleanVar()
+# flecha_ruta_var.set(True)
+# flecha_ruta_checkbutton = tk.Checkbutton(ruta_frame, variable=flecha_ruta_var)
+# flecha_ruta_checkbutton.grid(row=2, column=2, padx=1, pady=1)
 
 # Opciones de ruta
-gradiente_ruta_label = tk.Label(ruta_frame, text="Gradiente en ruta:", font=("Arial", 11, "normal"))
-gradiente_ruta_label.grid(row=1, column=1, padx=1, pady=1)
 gradiente_ruta_var = tk.BooleanVar()
 gradiente_ruta_var.set(True)
-gradiente_ruta_checkbutton = tk.Checkbutton(ruta_frame, variable=gradiente_ruta_var)
-gradiente_ruta_checkbutton.grid(row=1, column=2, padx=1, pady=1)
 
-flecha_ruta_label = tk.Label(ruta_frame, text="Flechas en ruta:", font=("Arial", 11, "normal"))
-flecha_ruta_label.grid(row=2, column=1, padx=1, pady=1)
 flecha_ruta_var = tk.BooleanVar()
 flecha_ruta_var.set(True)
-flecha_ruta_checkbutton = tk.Checkbutton(ruta_frame, variable=flecha_ruta_var)
-flecha_ruta_checkbutton.grid(row=2, column=2, padx=1, pady=1)
+
+# Crear el botón para mostrar/ocultar las opciones
+opciones_button = tk.Menubutton(ventana, text="Opciones de Visualización", relief="raised", direction="above", padx=2, pady=2)
+opciones_button.grid(row=7, column=1, rowspan=1, columnspan=2, padx=1, pady=0)
+
+# Contenedor para las opciones de visualización
+opciones_menu = tk.Menu(opciones_button, tearoff=0)
+
+# Agregar opciones de visualización al menú
+opciones_menu.add_checkbutton(label="Gradiente en ruta", variable=gradiente_ruta_var, font=("Arial", 11, "normal"))
+opciones_menu.add_checkbutton(label="Flechas en ruta", variable=flecha_ruta_var, font=("Arial", 11, "normal"))
+
+# Configurar el menú desplegable
+opciones_button["menu"] = opciones_menu
 
 # Contenedor de configuracion de velocidad
 velocidad_frame = tk.Frame(ventana)

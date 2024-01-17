@@ -55,7 +55,6 @@ def crear_tablero(N, dificultad):
     tablero_edicion = np.copy(tablero)
     return tablero, inicio, meta
 
-
 # Función para visualizar el tablero en la consola
 def mostrar_tablero(tablero, inicio, meta, trayectoria=None):
     N = len(tablero)
@@ -81,7 +80,6 @@ def mostrar_tablero(tablero, inicio, meta, trayectoria=None):
                 print("-", end=" ")
         print()
     print()
-
 
 # Función para obtener los vecinos de un nodo
 def obtener_vecinos(tablero, nodo):
@@ -115,7 +113,6 @@ def obtener_vecinos(tablero, nodo):
 
     return vecinos
 
-
 # función para obtener la distancia Manhattan entre dos nodos
 def distancia_manhattan(nodo1, nodo2):
     # Obtener la fila y columna de cada nodo
@@ -127,14 +124,12 @@ def distancia_manhattan(nodo1, nodo2):
     
     return distancia
 
-
 # Función para esperar un tiempo proporcional al tamaño del tablero
 def esperar(tablero):
     global velocidad_var
     factor = velocidad_var.get()
     tiempo = 10 / factor / len(tablero)
     time.sleep(tiempo)
-
 
 # Algoritmo de Depth-First Search (DFS)
 def dfs(tablero, inicio, meta):
@@ -188,7 +183,6 @@ def dfs(tablero, inicio, meta):
     mostrar_tablero_en_canvas(tablero, inicio, meta, list(visitados.keys()), False)
     return None, time.perf_counter() - inicio_tiempo
 
-
 # Algoritmo de Breadth-First Search (BFS)
 def bfs(tablero, inicio, meta):
     # Iniciar el tiempo de ejecución
@@ -241,7 +235,6 @@ def bfs(tablero, inicio, meta):
     # No hay trayectoria
     mostrar_tablero_en_canvas(tablero, inicio, meta, list(visitados.keys()), False)
     return None, time.perf_counter() - inicio_tiempo
-
 
 # Función de Best-First Search (BFS)
 def best_first_search(tablero, inicio, meta):
@@ -300,7 +293,6 @@ def best_first_search(tablero, inicio, meta):
     # No hay trayectoria
     mostrar_tablero_en_canvas(tablero, inicio, meta, list(visitados.keys()), False)
     return None, time.perf_counter() - inicio_tiempo
-
 
 # Función de búsqueda A*
 def astar(tablero, inicio, meta):
@@ -363,7 +355,6 @@ def astar(tablero, inicio, meta):
     mostrar_tablero_en_canvas(tablero, inicio, meta, list(padres.keys()), False)
     return None, time.perf_counter() - inicio_tiempo
 
-
 # Función para generar un gradiente entre dos colores
 def generar_color_gradiente(posicion_actual, longitud_ruta, color_inicio=(0, 50, 230), color_final=(0, 128, 0)):
     # Calcula el valor intermedio de hue entre los dos colores
@@ -376,7 +367,6 @@ def generar_color_gradiente(posicion_actual, longitud_ruta, color_inicio=(0, 50,
     
     # Convierte los valores RGB en una cadena hexadecimal
     return "#{:02x}{:02x}{:02x}".format(int(rgb[0] * 255), int(rgb[1] * 255), int(rgb[2] * 255))
-
 
 def mostrar_tablero_en_canvas_mapa(tablero, inicio, meta, ruta=None, exito=None):
     canvas.delete("all")
@@ -406,7 +396,6 @@ def mostrar_tablero_en_canvas_mapa(tablero, inicio, meta, ruta=None, exito=None)
                 canvas.create_rectangle(x1, y1, x2, y2, fill="white", outline="black")
 
     ventana.update()
-
 
 # Función para mostrar el tablero y la ruta en el Canvas
 def mostrar_tablero_en_canvas(tablero, inicio, meta, ruta=None, exito=None):
@@ -497,7 +486,6 @@ def mostrar_tablero_en_canvas(tablero, inicio, meta, ruta=None, exito=None):
     
     ventana.update()
 
-
 # Función para crear un escenario
 def crear_escenario():
     global tablero, inicio, meta
@@ -528,7 +516,6 @@ def crear_escenario():
     # Mostrar el tablero en el Canvas
     mostrar_tablero_en_canvas_mapa(tablero, inicio, meta)    
 
-
 def abrir_ventana_edicion():
     global tablero, inicio, meta
 
@@ -544,7 +531,6 @@ def abrir_ventana_edicion():
     ventana_edicion.grab_set()
     ventana_edicion.transient(ventana)
     ventana_edicion.geometry("+%d+%d" % (ventana.winfo_rootx() + 100, ventana.winfo_rooty()-50))
-
 
     # Función para cambiar el color de una celda en la ventana de edición
     def cambiar_color(fila, columna):
@@ -562,7 +548,6 @@ def abrir_ventana_edicion():
             copy_tablero[fila][columna] = 3
             meta = (fila, columna)
 
-    
     filas = tablero.shape[0]
     columnas = tablero.shape[1]
     celdas = []
@@ -605,7 +590,6 @@ def abrir_ventana_edicion():
         mostrar_tablero_en_canvas_mapa(tablero, inicio, meta)
 
         ventana_edicion.destroy()
-
 
     color_seleccionado = tk.StringVar()
     color_seleccionado.set("white")
@@ -653,7 +637,6 @@ def abrir_ventana_edicion():
     cargar_txt_button = tk.Button(contenedor_botones, text="Cargar(txt)", command=lambda: cargar_tablero_desde_txt(ventana_edicion))
     cargar_txt_button.grid(row=0, column=3, padx=5)
 
-
 # Función para guardar el tablero editado en un archivo txt
 def guardar_tablero_en_txt(ventana_edicion, copy_tablero):
     global tablero, tablero_edicion, inicio, meta
@@ -674,7 +657,6 @@ def guardar_tablero_en_txt(ventana_edicion, copy_tablero):
     np.savetxt(f"{dir_path_tableros}/tablero_{len(tablero)}X{len(tablero)}-({inicio[1]},{inicio[0]})({meta[1]},{meta[0]}).txt", copy_tablero, fmt="%d")
 
     messagebox.showinfo("Guardado exitoso", "El escenario se guardó correctamente.", parent=ventana_edicion)
-
 
 # Función para cargar un tablero desde un archivo txt
 def cargar_tablero_desde_txt(ventana_edicion):
@@ -717,7 +699,6 @@ def cargar_tablero_desde_txt(ventana_edicion):
         except ValueError:
             messagebox.showerror("Carga de escenario", "El archivo seleccionado no es un tablero válido (tiene caracteres no numéricos).", parent=ventana_edicion)
             return None
-    
 
 # Función para ejecutar los algoritmos de búsqueda
 def buscar_ruta():
@@ -775,20 +756,18 @@ inicio = None
 meta = None
 ultimo_pintado = None
 
-#obtener la ubicacion del archivo
+# Obtener la ubicacion
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
 # Ventana principal de la interfaz gráfica
 ventana = tk.Tk()
 ventana.title("Metodos de Búsqueda")
-# centrar la ventana
 ancho_ventana = 820
 alto_ventana = 610
 x_ventana = ventana.winfo_screenwidth() // 2 - ancho_ventana // 2
 y_ventana = ventana.winfo_screenheight() // 2 - alto_ventana // 2
 ventana.geometry(f"{ancho_ventana}x{alto_ventana}+{x_ventana}+{y_ventana}")
 ventana.resizable(False, False)
-
 
 # Canvas para mostrar el tablero
 canvas = tk.Canvas(ventana, width=600, height=600)
@@ -827,7 +806,7 @@ algoritmo_optionmenu.grid(row=2, column=2, padx=1, pady=1)
 
 # Contenedor para las opciones de la ruta
 ruta_frame = tk.Frame(ventana)
-ruta_frame.grid(row=5, column=1, rowspan=1, columnspan=2, padx=1, pady=1)
+ruta_frame.grid(row=7, column=1, rowspan=1, columnspan=2, padx=1, pady=1)
 
 # Opciones de ruta
 gradiente_ruta_label = tk.Label(ruta_frame, text="Gradiente en ruta:", font=("Arial", 11, "normal"))
@@ -846,7 +825,7 @@ flecha_ruta_checkbutton.grid(row=2, column=2, padx=1, pady=1)
 
 # Contenedor de configuracion de velocidad
 velocidad_frame = tk.Frame(ventana)
-velocidad_frame.grid(row=6, column=1, rowspan=1, columnspan=2, padx=1, pady=0)
+velocidad_frame.grid(row=8, column=1, rowspan=1, columnspan=2, padx=1, pady=0)
 
 # Opciones de velocidad
 velocidad_label = tk.Label(velocidad_frame, text="Velocidad:", font=("Arial", 11, "normal"))
@@ -856,18 +835,17 @@ velocidad_var.set(15)
 velocidad_scale = tk.Scale(velocidad_frame, variable=velocidad_var, from_=1, to=100, orient=tk.HORIZONTAL, length=100,showvalue=False)
 velocidad_scale.grid(row=1, column=2, padx=1, pady=1)
 
-
 # Botón para crear un escenario
 crear_escenario_button = tk.Button(ventana, text="Nuevo escenario", command=crear_escenario, font=("Arial", 11, "normal"))
-crear_escenario_button.grid(row=9, column=1, columnspan=2, padx=1, pady=1)
+crear_escenario_button.grid(row=11, column=1, columnspan=2, padx=1, pady=1)
 
 # Botón para editar el tablero
 editar_button = tk.Button(ventana, text="Editar escenario", command=abrir_ventana_edicion, font=("Arial", 11, "normal"))
-editar_button.grid(row=10, column=1, columnspan=2, padx=1, pady=1)
+editar_button.grid(row=12, column=1, columnspan=2, padx=1, pady=1)
 
 # Botón para ejecutar el algoritmo de búsqueda
 buscar_button = tk.Button(ventana, text="Buscar", command=buscar_ruta, font=("Arial", 11, "bold"))
-buscar_button.grid(row=11, column=1, columnspan=2, padx=1, pady=1)
+buscar_button.grid(row=13, column=1, columnspan=2, padx=1, pady=1)
 
 # Resultados
 resultados_var = tk.StringVar()
